@@ -71,3 +71,9 @@ CMakeUserPresets.json
 ### CMake Patch ###
 # External projects
 *-prefix/
+
+#vscode folder
+.vscode/
+
+#build folder
+build/
