@@ -214,7 +214,7 @@ Matrix shearing(float xy, float xz, float yx, float yz, float zx, float zy){
     return shear;
 }
 
-Matrix view_transform(const tuple& from, const tuple& to, tuple& up){
+Matrix view_transform(const tuple& from, const tuple& to, const tuple& up){
     tuple forward = normalize(to - from);
     tuple upn = normalize(up);
     tuple left = cross(forward, upn);

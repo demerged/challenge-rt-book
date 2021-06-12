@@ -77,3 +77,4 @@ CMakeUserPresets.json
 
 #build folder
 build/
+samples/ch7_ex
