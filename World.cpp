@@ -42,8 +42,11 @@ Color shade_hit(const World& w, const Computation& comps){
 	return lighting(comps.s.material, l, comps.p, comps.eyev, comps.normalv);
 }
 
-Color color_at(World& world, const Ray& r){
-	auto xs = world.intersect_world(r);
-	
-	
+Color color_at(World& w, Ray& r){
+	auto xs = w.intersect_world(r);
+	Intersection i = hit(xs);
+	if (i.none)
+		return Color(0, 0, 0);
+	Computation comps = prepare_computations(i, r);
+	return shade_hit(w, comps);
 }

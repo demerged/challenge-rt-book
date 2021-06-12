@@ -822,11 +822,11 @@ TEST(WorldScene, ColorAtTest){
     EXPECT_EQ(c, Color(0.38066, 0.47583, 0.2855));
 
     w = World::get_default_world();
-    Sphere outer = w.spheres[0];
-    outer.material.ambient = 1;
-    Sphere inner = w.spheres[1];
-    inner.material.ambient = 1;
+    Sphere* outer = &w.spheres[0];
+    outer->material.ambient = 1;
+    Sphere* inner = &w.spheres[1];
+    inner->material.ambient = 1;
     r = Ray(point(0, 0, 0.75), vector(0, 0, -1));
     c = color_at(w, r);
-    EXPECT_EQ(c, inner.material.color);
+    EXPECT_EQ(c, inner->material.color);
 }
