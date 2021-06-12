@@ -6,6 +6,7 @@
 #include "Light.h"
 #include "Material.h"
 #include "World.cpp"
+#include "Camera.cpp"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -866,4 +867,47 @@ TEST(WorldScene, ViewTransformationTest){
              {-0.35857, 0.59761, -0.71714,  0.00000},
              { 0.00000, 0.00000,  0.00000,  1.00000}};
     EXPECT_EQ(t, mat);
+}
+
+TEST(WorldScene, ConstructingCameraTest){
+    int hsize = 160, vsize = 120;
+    float fov = PI / 2.0f;
+    Camera cam = Camera(hsize, vsize, fov);
+    EXPECT_EQ(cam.hsize, hsize);
+    EXPECT_EQ(cam.vsize, vsize);
+    EXPECT_FLOAT_EQ(cam.fov, fov);
+}
+
+TEST(WorldScene, CameraPixelSizeHorizontalCanvasTest){
+    Camera cam = Camera(200, 125, PI/2.0f);
+    EXPECT_TRUE(cmp_f(cam.pixel_size, 0.01f));
+}
+
+TEST(WorldScene, CameraPixelSizeVerticalCanvasTest){
+    Camera cam = Camera(125, 200, PI/2.0f);
+    EXPECT_TRUE(cmp_f(cam.pixel_size, 0.01f));
+}
+
+TEST(WorldScene, ConstructingRayThroughCenterTest){
+    Camera cam = Camera(201, 101, PI/2.0f);
+    Ray r = cam.ray_for_pixel(100, 50);
+    EXPECT_EQ(r.origin, point(0, 0, 0));
+    EXPECT_EQ(r.direction, vector(0, 0, -1));
+}
+
+
+TEST(WorldScene, ConstructingRayThroughCornerTest){
+    Camera cam = Camera(201, 101, PI/2.0f);
+    Ray r = cam.ray_for_pixel(0, 0);
+    EXPECT_EQ(r.origin, point(0, 0, 0));
+    EXPECT_EQ(r.direction, vector(0.66519, 0.33259, -0.66851));
+}
+
+
+TEST(WorldScene, ConstructingRayCameraTransformedTest){
+    Camera cam = Camera(201, 101, PI/2.0f);
+    cam.transform = rotation_y(PI/4.0f) * translation(0, -2, 5);
+    Ray r = cam.ray_for_pixel(100, 50);
+    EXPECT_EQ(r.origin, point(0, 2, -5));
+    EXPECT_EQ(r.direction, vector(sqrt(2.0f) / 2.0f, 0, -sqrt(2.0f) / 2.0f));
 }
