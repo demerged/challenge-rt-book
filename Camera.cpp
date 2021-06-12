@@ -39,3 +39,15 @@ struct Camera{
         return Ray(origin, direction);
     }
 };
+
+Canvas render(Camera& cam, World& world){
+    Canvas image = Canvas(cam.hsize, cam.vsize);
+    for (int y = 0; y < cam.vsize; y++){
+        for (int x = 0; x < cam.hsize; x++){
+            Ray ray = cam.ray_for_pixel(x, y);
+            Color color = color_at(world, ray);
+            write_pixel(image, x, y, color);
+        }
+    }
+    return image;
+}

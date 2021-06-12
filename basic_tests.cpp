@@ -895,7 +895,6 @@ TEST(WorldScene, ConstructingRayThroughCenterTest){
     EXPECT_EQ(r.direction, vector(0, 0, -1));
 }
 
-
 TEST(WorldScene, ConstructingRayThroughCornerTest){
     Camera cam = Camera(201, 101, PI/2.0f);
     Ray r = cam.ray_for_pixel(0, 0);
@@ -903,11 +902,21 @@ TEST(WorldScene, ConstructingRayThroughCornerTest){
     EXPECT_EQ(r.direction, vector(0.66519, 0.33259, -0.66851));
 }
 
-
 TEST(WorldScene, ConstructingRayCameraTransformedTest){
     Camera cam = Camera(201, 101, PI/2.0f);
     cam.transform = rotation_y(PI/4.0f) * translation(0, -2, 5);
     Ray r = cam.ray_for_pixel(100, 50);
     EXPECT_EQ(r.origin, point(0, 2, -5));
     EXPECT_EQ(r.direction, vector(sqrt(2.0f) / 2.0f, 0, -sqrt(2.0f) / 2.0f));
+}
+
+TEST(WorldScene, RenderingWorldTest){
+    World world = World::get_default_world();
+    Camera cam = Camera(11, 11, PI/2.0f);
+    tuple from = point(0, 0, -5);
+    tuple to = point(0, 0, 0);
+    tuple up = vector(0, 1, 0);
+    cam.transform = view_transform(from, to, up);
+    Canvas image = render(cam, world);
+    EXPECT_EQ(pixel_at(image, 5, 5), Color(0.38066, 0.47583, 0.2855));
 }
