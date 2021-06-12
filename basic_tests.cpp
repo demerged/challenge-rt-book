@@ -830,3 +830,40 @@ TEST(WorldScene, ColorAtTest){
     c = color_at(w, r);
     EXPECT_EQ(c, inner->material.color);
 }
+
+TEST(WorldScene, DefaultOrientationTest){
+    tuple from = point(0, 0, 0);
+    tuple to = point(0, 0, -1);
+    tuple up = vector(0, 1, 0);
+    Matrix t = view_transform(from, to, up);
+    EXPECT_EQ(t, Matrix::get_identity());
+}
+
+TEST(WorldScene, PosZOrientationTest){
+    tuple from = point(0, 0, 0);
+    tuple to = point(0, 0, 1);
+    tuple up = vector(0, 1, 0);
+    Matrix t = view_transform(from, to, up);
+    EXPECT_EQ(t, scaling(-1, 1, -1));
+}
+
+TEST(WorldScene, ViewTransformationMovesWorldTest){
+    tuple from = point(0, 0, 8);
+    tuple to = point(0, 0, 0);
+    tuple up = vector(0, 1, 0);
+    Matrix t = view_transform(from, to, up);
+    EXPECT_EQ(t, translation(0, 0, -8));
+}
+
+TEST(WorldScene, ViewTransformationTest){
+    tuple from = point(1, 3, 2);
+    tuple to = point(4, -2, 8);
+    tuple up = vector(1, 1, 0);
+    Matrix t = view_transform(from, to, up);
+    Matrix mat = Matrix(4);
+    mat.m = {{-0.50709, 0.50709,  0.67612, -2.36643},
+             { 0.76772, 0.60609,  0.12122, -2.82843},
+             {-0.35857, 0.59761, -0.71714,  0.00000},
+             { 0.00000, 0.00000,  0.00000,  1.00000}};
+    EXPECT_EQ(t, mat);
+}

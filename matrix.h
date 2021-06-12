@@ -69,6 +69,7 @@ struct Matrix {
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix& mat) {
+        os << std::endl;
         for (auto i : mat.m) {
             for (auto j : i) {
                 os << j << " ";
@@ -211,4 +212,17 @@ Matrix shearing(float xy, float xz, float yx, float yz, float zx, float zy){
     shear.m[2][0] = zx;
     shear.m[2][1] = zy;
     return shear;
+}
+
+Matrix view_transform(const tuple& from, const tuple& to, tuple& up){
+    tuple forward = normalize(to - from);
+    tuple upn = normalize(up);
+    tuple left = cross(forward, upn);
+    tuple true_up = cross(left, forward);
+    Matrix orientation = Matrix(4);
+    orientation.m = {{left.x,      left.y,     left.z,    0},
+                     {true_up.x,   true_up.y,  true_up.z, 0},
+                     {-forward.x, -forward.y, -forward.z, 0},
+                     {0,            0,         0,         1}};
+    return orientation * translation(-from.x, -from.y, -from.z);
 }
