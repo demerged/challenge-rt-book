@@ -34,12 +34,25 @@ struct World {
 	}
 };
 
-
-Color shade_hit(const World& w, const Computation& comps){
-	Point_light l;
+bool is_shadowed(World& w, tuple p){
+	Point_light plight;
 	if (w.light_source.has_value())
-		l = *w.light_source;
-	return lighting(comps.s.material, l, comps.p, comps.eyev, comps.normalv);
+		plight = *w.light_source;
+	tuple v = plight.position - p;
+	float distance = magnitude(v);
+	tuple direction = normalize(v);
+	Ray r = Ray(p, direction);
+	auto xs = w.intersect_world(r);
+	Intersection h = hit(xs);
+	return (!h.none && h.t < distance);	
+}
+
+Color shade_hit(World& w, const Computation& comps){
+	Point_light light;
+	if (w.light_source.has_value())
+		light = *w.light_source;
+	bool in_shadow =  is_shadowed(w, comps.over_point);
+	return lighting(comps.s.material, light, comps.p, comps.eyev, comps.normalv, in_shadow);
 }
 
 Color color_at(World& w, Ray& r){

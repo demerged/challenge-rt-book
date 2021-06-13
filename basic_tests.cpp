@@ -715,31 +715,31 @@ TEST(LightShading, MaterialsLightingTest) {
     tuple eyev = vector(0, 0, -1);
     tuple normalv = vector(0, 0, -1);
     Point_light light = Point_light(point(0, 0, -10), Color(1, 1, 1));
-    Color result = lighting(m, light, position, eyev, normalv);
+    Color result = lighting(m, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.9, 1.9, 1.9));
 
     eyev = vector(0, sqrt(2) / 2, -sqrt(2) / 2);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 0, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv);
+    result = lighting(m, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.0, 1.0, 1.0));
 
     eyev = vector(0, 0, -1);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 10, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv);
+    result = lighting(m, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(0.7364, 0.7364, 0.7364));
 
     eyev = vector(0, -sqrt(2) / 2, -sqrt(2) / 2);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 10, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv);
+    result = lighting(m, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.63639, 1.63639, 1.63639));
 
     eyev = vector(0, 0, -1);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 0, 10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv);
+    result = lighting(m, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(0.1, 0.1, 0.1));
 }
 
@@ -800,15 +800,17 @@ TEST(WorldScene, ShadingIntersectionTest){
     Computation comps = prepare_computations(i, r);
     Color c = shade_hit(w, comps);
     EXPECT_EQ(c, Color(0.38066, 0.47583, 0.2855));
+}
 
-    w = World::get_default_world();
+TEST(WorldScene, ShadingIntersectionFromInsideTest){
+    World w = World::get_default_world();
     w.light_source = Point_light(point(0, 0.25, 0), Color(1, 1, 1));
-    r = Ray(point(0, 0, 0), vector(0, 0, 1));
-    s = w.spheres[1];
-    i = Intersection(0.5, s);
-    comps = prepare_computations(i, r);
-    c = shade_hit(w, comps);
-    EXPECT_EQ(c, Color(0.90498, 0.90498, 0.90498));    
+    Ray r = Ray(point(0, 0, 0), vector(0, 0, 1));
+    Sphere s = w.spheres[1];
+    Intersection i = Intersection(0.5, s);
+    Computation comps = prepare_computations(i, r);
+    Color c = shade_hit(w, comps);
+    EXPECT_EQ(c, Color(0.90498, 0.90498, 0.90498));
 }
 
 TEST(WorldScene, ColorAtTest){
@@ -919,4 +921,32 @@ TEST(WorldScene, RenderingWorldTest){
     cam.transform = view_transform(from, to, up);
     Canvas image = render(cam, world);
     EXPECT_EQ(pixel_at(image, 5, 5), Color(0.38066, 0.47583, 0.2855));
+}
+
+TEST(Shadows, NoShadowBetweenTest){
+    World world = World::get_default_world();
+    tuple p = point(0, 10, 0);
+    EXPECT_FALSE(is_shadowed(world, p));
+}
+
+TEST(Shadows, NoShadowObjectBehindLightTest){
+    World world = World::get_default_world();
+    tuple p = point(10, -10, 10);
+    EXPECT_TRUE(is_shadowed(world, p));
+}
+
+TEST(Shadows, NoShadowObjectBehindPointTest){
+    World world = World::get_default_world();
+    tuple p = point(-2, 2, -2);
+    EXPECT_FALSE(is_shadowed(world, p));
+}
+
+TEST(Shadows, HitOffsetPointTest){
+    Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
+    Sphere s = Sphere();
+    s.transform = translation(0, 0, 1);
+    Intersection i = Intersection(5, s);
+    Computation comps = prepare_computations(i, r);
+    EXPECT_LT(comps.over_point.z, -EPSILON/2.0f);
+    EXPECT_GT(comps.p.z, comps.over_point.z);
 }

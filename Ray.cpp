@@ -128,6 +128,7 @@ struct Computation{
     tuple p;
     tuple eyev;
     tuple normalv;
+    tuple over_point;
     bool inside;
     Computation(){}
 };
@@ -147,6 +148,8 @@ Computation prepare_computations(const Intersection& i, Ray& r){
     else {
         comps.inside = false;
     }
+    comps.over_point = comps.p + comps.normalv * EPSILON;
+
     return comps;
 }
 

@@ -6,10 +6,10 @@
 #include <sstream>
 
 #define PI 3.14159
+#define EPSILON 0.01
 
 bool cmp_f(float a, float b) {
-    float epsilon = 0.00001;
-    return (abs(a - b) < epsilon);
+    return (abs(a - b) < EPSILON);
 }
 
 struct tuple {
@@ -41,12 +41,11 @@ struct tuple {
         return tuple(x/a, y/a, z/a, w/a);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, tuple &t){
+    friend std::ostream &operator<<(std::ostream &os, const tuple &t){
         if (t.w == 0) os << "vector";
         else if (t.w == 1) os << "point";
         else os << "tuple";
-        os << "(" << t.x << ", " << t.y << ", " << t.z << ", " << t.w << ")";
-        return os;
+        return os << "(" << t.x << ", " << t.y << ", " << t.z << ", " << t.w << ")";
     }
 };
 
@@ -70,9 +69,8 @@ struct Color{
     bool operator==(const Color &c) const {
         return (cmp_f(red, c.red) && cmp_f(green, c.green) && cmp_f(blue, c.blue));
     }
-    friend std::ostream &operator<<(std::ostream &os, Color &c){
-        os << "Color(" << c.red << ", " << c.green << ", " << c.blue << ")";
-        return os;
+    friend std::ostream &operator<<(std::ostream& os, const Color& c){
+        return os << "Color(" << c.red << ", " << c.green << ", " << c.blue << ")";
     }
 
     Color hadamard_product(const Color &c1, const Color &c2) {
