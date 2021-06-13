@@ -48,6 +48,9 @@ Canvas render(Camera& cam, World& world){
             Color color = color_at(world, ray);
             write_pixel(image, x, y, color);
         }
+        //std::cout << "\rProgress: " << (y * 100) / cam.vsize << "%" << std::flush;
+        std::cout << "\rLine: " << y+1 << "/" << cam.vsize << std::flush;
     }
+    std::cout << "\nDone!" << std::endl;
     return image;
 }
