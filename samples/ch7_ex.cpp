@@ -56,7 +56,7 @@ int main(){
     world.spheres.push_back(left);
     world.spheres.push_back(right);
     world.light_source = Point_light(point(-10, 10, -10), Color(1, 1, 1));
-    Camera cam = Camera(100, 50, PI/3.0f);
+    Camera cam = Camera(800, 600, PI/3.0f);
     cam.transform = view_transform(point(0, 1.5, -5), point(0, 1, 0),vector(0, 1, 0));
     Canvas canvas = render(cam, world);
     canvas_to_ppm(canvas);
