@@ -17,8 +17,7 @@ enable_testing()
 
 add_executable(
     app
-        basic_tests.cpp
-        matrix.h "Light.h" "Material.h")
+        basic_tests.cpp)
 target_link_libraries(
     app
     gtest_main
