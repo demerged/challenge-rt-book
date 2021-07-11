@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
 #include "rt.h"
 #include "matrix.h"
 #include "Ray.cpp"
@@ -7,6 +8,10 @@
 #include "Material.h"
 #include "World.cpp"
 #include "Camera.cpp"
+#include "Intersection.cpp"
+#include "Computation.cpp"
+#include "Shape.cpp"
+#include "Sphere.cpp"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -478,7 +483,7 @@ TEST(RayCasting, RayQueryTest){
 TEST(RayCasting, SphereIntersectTest){
     Ray r(point(0, 0, -5), vector(0, 0, 1));
     Sphere s;
-    std::vector<Intersection> xs = intersect(s, r);
+    std::vector<Intersection> xs = s.intersect(r);
     EXPECT_FLOAT_EQ(xs.size(), 2);
     EXPECT_FLOAT_EQ(xs[0].t, 4.0f);
     EXPECT_FLOAT_EQ(xs[1].t, 6.0f);
@@ -487,7 +492,7 @@ TEST(RayCasting, SphereIntersectTest){
 TEST(RayCasting, SphereIntersectTangentTest) {
     Ray r(point(0, 1, -5), vector(0, 0, 1));
     Sphere s;
-    std::vector<Intersection> xs = intersect(s, r);
+    std::vector<Intersection> xs = s.intersect(r);
     EXPECT_FLOAT_EQ(xs.size(), 2);
     EXPECT_FLOAT_EQ(xs[0].t, 5.0f);
     EXPECT_FLOAT_EQ(xs[1].t, 5.0f);
@@ -496,7 +501,7 @@ TEST(RayCasting, SphereIntersectTangentTest) {
 TEST(RayCasting, SphereIntersectMissTest) {
     Ray r(point(0, 2, -5), vector(0, 0, 1));
     Sphere s;
-    std::vector<Intersection> xs = intersect(s, r);
+    std::vector<Intersection> xs = s.intersect(r);
     EXPECT_FLOAT_EQ(xs.size(), 0);
 }
 
@@ -504,7 +509,7 @@ TEST(RayCasting, SphereIntersectMissTest) {
 TEST(RayCasting, SphereIntersectInsideTest) {
     Ray r(point(0, 0, 0), vector(0, 0, 1));
     Sphere s;
-    std::vector<Intersection> xs = intersect(s, r);
+    std::vector<Intersection> xs = s.intersect(r);
     EXPECT_FLOAT_EQ(xs.size(), 2);
     EXPECT_FLOAT_EQ(xs[0].t, -1.0f);
     EXPECT_FLOAT_EQ(xs[1].t, 1.0f);
@@ -513,23 +518,23 @@ TEST(RayCasting, SphereIntersectInsideTest) {
 TEST(RayCasting, SphereIntersectBehindTest) {
     Ray r(point(0, 0, 5), vector(0, 0, 1));
     Sphere s;
-    std::vector<Intersection> xs = intersect(s, r);
+    std::vector<Intersection> xs = s.intersect(r);
     EXPECT_FLOAT_EQ(xs.size(), 2);
     EXPECT_FLOAT_EQ(xs[0].t, -6.0f);
     EXPECT_FLOAT_EQ(xs[1].t, -4.0f);
 }
 
 TEST(RayCasting, IntersectTest) {
-    Sphere s = Sphere();
-    Intersection i(3.5, s);
+    std::shared_ptr<Shape> s = std::make_shared<Sphere>();
+    Intersection i(3.5, s.get());
     EXPECT_FLOAT_EQ(i.t, 3.5);
-    EXPECT_EQ(i.s, s);
+    EXPECT_EQ(i.s, s.get());
 }
 
 TEST(RayCasting, IntersectionsTest) {
     Sphere s = Sphere();
-    Intersection i1(1, s);
-    Intersection i2(2, s);
+    Intersection i1(1, &s);
+    Intersection i2(2, &s);
     std::vector<Intersection> xs = intersections(i1, i2);
     EXPECT_EQ(xs.size(), 2);
     EXPECT_EQ(xs[0].t, 1);
@@ -539,16 +544,16 @@ TEST(RayCasting, IntersectionsTest) {
 TEST(RayCasting, IntersectionsObjectTest) {
     Ray r(point(0, 0, -5), vector(0, 0, 1));
     auto s = Sphere();
-    auto xs = intersect(s, r);
+    auto xs = s.intersect(r);
     EXPECT_EQ(xs.size(), 2);
-    EXPECT_EQ(xs[0].s, s);
-    EXPECT_EQ(xs[1].s, s);
+    EXPECT_EQ(xs[0].s, &s);
+    EXPECT_EQ(xs[1].s, &s);
 }
 
 TEST(RayCasting, IntersectionAllPositive) {
     auto s = Sphere();
-    Intersection i1(1, s);
-    Intersection i2(2, s);
+    Intersection i1(1, &s);
+    Intersection i2(2, &s);
     auto xs = intersections(i2, i1);
     Intersection i = hit(xs);
     EXPECT_FALSE(i.none);
@@ -557,8 +562,8 @@ TEST(RayCasting, IntersectionAllPositive) {
 
 TEST(RayCasting, IntersectionSomeNegative){
     Sphere s = Sphere();
-    Intersection i1(-1, s);
-    Intersection i2(1, s);
+    Intersection i1(-1, &s);
+    Intersection i2(1, &s);
     auto xs = intersections(i2, i1);
     Intersection i = hit(xs);
     EXPECT_FALSE(i.none);
@@ -567,8 +572,8 @@ TEST(RayCasting, IntersectionSomeNegative){
 
 TEST(RayCasting, IntersectionAllNegative){
     Sphere s = Sphere();
-    Intersection i1(-2, s);
-    Intersection i2(-1, s);
+    Intersection i1(-2, &s);
+    Intersection i2(-1, &s);
     auto xs = intersections(i2, i1);
     Intersection i = hit(xs);
     EXPECT_TRUE(i.none);
@@ -576,10 +581,10 @@ TEST(RayCasting, IntersectionAllNegative){
 
 TEST(RayCasting, IntersectionResultIsNonegative){
     Sphere s = Sphere();
-    Intersection i1(5, s);
-    Intersection i2(7, s);
-    Intersection i3(-3, s);
-    Intersection i4(2, s);
+    Intersection i1(5, &s);
+    Intersection i2(7, &s);
+    Intersection i3(-3, &s);
+    Intersection i4(2, &s);
     auto xs = intersections(i1, i2, i3, i4);
     Intersection i = hit(xs);
     EXPECT_FALSE(i.none);
@@ -589,7 +594,7 @@ TEST(RayCasting, IntersectionResultIsNonegative){
 TEST(RayCasting, RayTranslateTest) {
     Ray r = Ray(point(1, 2, 3), vector(0, 1, 0));
     Matrix m = translation(3, 4, 5);
-    Ray r2 = transform(r, m);
+    Ray r2 = r.transform(m);
     EXPECT_EQ(r2.origin, point(4, 6, 8));
     EXPECT_EQ(r2.direction, vector(0, 1, 0));
 }
@@ -597,13 +602,13 @@ TEST(RayCasting, RayTranslateTest) {
 TEST(RayCasting, RayScaleTest) {
     Ray r = Ray(point(1, 2, 3), vector(0, 1, 0));
     Matrix m = scaling(2, 3, 4);
-    Ray r2 = transform(r, m);
+    Ray r2 = r.transform(m);
     EXPECT_EQ(r2.origin, point(2, 6, 12));
     EXPECT_EQ(r2.direction, vector(0, 3, 0));
 }
 
 TEST(RayCasting, SphereTransformTest) {
-    Sphere s = Sphere();
+    TestShape s = TestShape();
     EXPECT_EQ(s.transform, Matrix::get_identity());
 
     Matrix t = translation(2.0f, 3.0f, 4.0f);
@@ -615,7 +620,7 @@ TEST(RayCasting, SphereRayIntersectTest) {
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
     Sphere s = Sphere();
     s.set_transform(scaling(2, 2, 2));
-    auto xs = intersect(s, r);
+    auto xs = s.intersect(r);
     EXPECT_EQ(xs.size(), 2);
     EXPECT_EQ(xs[0].t, 3);
     EXPECT_EQ(xs[1].t, 7);
@@ -623,38 +628,38 @@ TEST(RayCasting, SphereRayIntersectTest) {
 
 TEST(LightShading, SphereNormalXaxisTest) {
     auto s = Sphere();
-    tuple n = normal_at(s, point(1, 0, 0));
+    tuple n = s.normal_at(point(1, 0, 0));
     EXPECT_EQ(n, vector(1, 0, 0));
 }
 
 TEST(LightShading, SphereNormalYaxisTest) {
     auto s = Sphere();
-    tuple n = normal_at(s, point(0, 1, 0));
+    tuple n = s.normal_at(point(0, 1, 0));
     EXPECT_EQ(n, vector(0, 1, 0));
 }
 
 TEST(LightShading, SphereNormalZaxisTest) {
     auto s = Sphere();
-    tuple n = normal_at(s, point(0, 0, 1));
+    tuple n = s.normal_at(point(0, 0, 1));
     EXPECT_EQ(n, vector(0, 0, 1));
 }
 
 TEST(LightShading, SphereNormalNonAxialTest) {
     auto s = Sphere();
-    tuple n = normal_at(s, point(sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f));
+    tuple n = s.normal_at(point(sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f));
     EXPECT_EQ(n, vector(sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f));
 }
 
 TEST(LightShading, SphereNormalNormalizedTest) {
     auto s = Sphere();
-    tuple n = normal_at(s, point(sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f));
+    tuple n = s.normal_at(point(sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f, sqrt(3.0f) / 3.0f));
     EXPECT_EQ(n, normalize(n));
 }
 
 TEST(LightShading, SphereNormalTranslated) {
     auto s = Sphere();
     s.set_transform(translation(0, 1, 0));
-    tuple n = normal_at(s, point(0, 1.70711, -0.70711));
+    tuple n = s.normal_at(point(0, 1.70711, -0.70711));
     EXPECT_EQ(n, vector(0, 0.70711, -0.70711));
 }
 
@@ -662,7 +667,7 @@ TEST(LightShading, SphereNormalTransformed) {
     auto s = Sphere();
     Matrix m = scaling(1, 0.5, 1) * rotation_z(PI / 5);
     s.set_transform(m);
-    tuple n = normal_at(s, point(0, sqrt(2) / 2, -sqrt(2) / 2));
+    tuple n = s.normal_at(point(0, sqrt(2) / 2, -sqrt(2) / 2));
     EXPECT_EQ(n, vector(0, 0.97014, -0.24254));
 }
 
@@ -698,7 +703,7 @@ TEST(LightShading, DefaultMaterialTest) {
 }
 
 TEST(LightShading, SphereMaterialTest) {
-    Sphere s = Sphere();
+    TestShape s = TestShape();
     Material m = s.material;
     EXPECT_EQ(m, Material());
 
@@ -745,11 +750,11 @@ TEST(LightShading, MaterialsLightingTest) {
 
 TEST(WorldScene, DefaultWorldTest) {
     World w1 = World();
-    EXPECT_EQ(w1.spheres.size(), 0);
+    EXPECT_EQ(w1.shapes.size(), 0);
     EXPECT_FALSE(w1.light_source.has_value());
 
     World w2 = World::get_default_world();
-    EXPECT_EQ(w2.spheres.size(), 2);
+    EXPECT_EQ(w2.shapes.size(), 2);
     EXPECT_TRUE(w2.light_source.has_value());
 }
 
@@ -767,9 +772,9 @@ TEST(WorldScene, DefaultWorldIntersectionTest) {
 TEST(WorldScene, PrepareComputationsTest) {
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
     Sphere s = Sphere();
-    Intersection i = Intersection(4, s);
+    Intersection i = Intersection(4, &s);
     auto comps = prepare_computations(i, r);
-    EXPECT_EQ(comps.s, s);
+    EXPECT_EQ(comps.s, &s);
     EXPECT_EQ(comps.p, point(0, 0, -1));
     EXPECT_EQ(comps.eyev, vector(0, 0, -1));
     EXPECT_EQ(comps.normalv, vector(0, 0, -1));
@@ -778,13 +783,13 @@ TEST(WorldScene, PrepareComputationsTest) {
 TEST(WorldScene, HitInsideTest) {
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
     Sphere s = Sphere();
-    Intersection i = Intersection(4, s);
+    Intersection i = Intersection(4, &s);
     Computation comps = prepare_computations(i, r);
     EXPECT_FALSE(comps.inside);
 
     r = Ray(point(0, 0, 0), vector(0, 0, 1));
     s = Sphere();
-    i = Intersection(1, s);
+    i = Intersection(1, &s);
     comps = prepare_computations(i, r);
     EXPECT_EQ(comps.p, point(0, 0, 1));
     EXPECT_EQ(comps.eyev, vector(0, 0, -1));
@@ -795,8 +800,8 @@ TEST(WorldScene, HitInsideTest) {
 TEST(WorldScene, ShadingIntersectionTest){
     World w = World::get_default_world();
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
-    Sphere s = w.spheres[0];
-    Intersection i = Intersection(4, s);
+    std::shared_ptr<Shape> s = w.shapes[0];
+    Intersection i = Intersection(4, s.get());
     Computation comps = prepare_computations(i, r);
     Color c = shade_hit(w, comps);
     EXPECT_EQ(c, Color(0.38066, 0.47583, 0.2855));
@@ -806,8 +811,8 @@ TEST(WorldScene, ShadingIntersectionFromInsideTest){
     World w = World::get_default_world();
     w.light_source = Point_light(point(0, 0.25, 0), Color(1, 1, 1));
     Ray r = Ray(point(0, 0, 0), vector(0, 0, 1));
-    Sphere s = w.spheres[1];
-    Intersection i = Intersection(0.5, s);
+    std::shared_ptr<Shape> s = w.shapes[1];
+    Intersection i = Intersection(0.5, s.get());
     Computation comps = prepare_computations(i, r);
     Color c = shade_hit(w, comps);
     EXPECT_EQ(c, Color(0.90498, 0.90498, 0.90498));
@@ -825,9 +830,9 @@ TEST(WorldScene, ColorAtTest){
     EXPECT_EQ(c, Color(0.38066, 0.47583, 0.2855));
 
     w = World::get_default_world();
-    Sphere* outer = &w.spheres[0];
+    std::shared_ptr<Shape> outer = w.shapes[0];
     outer->material.ambient = 1;
-    Sphere* inner = &w.spheres[1];
+    std::shared_ptr<Shape> inner = w.shapes[1];
     inner->material.ambient = 1;
     r = Ray(point(0, 0, 0.75), vector(0, 0, -1));
     c = color_at(w, r);
@@ -945,7 +950,7 @@ TEST(Shadows, HitOffsetPointTest){
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
     Sphere s = Sphere();
     s.transform = translation(0, 0, 1);
-    Intersection i = Intersection(5, s);
+    Intersection i = Intersection(5, &s);
     Computation comps = prepare_computations(i, r);
     EXPECT_LT(comps.over_point.z, -EPSILON/2.0f);
     EXPECT_GT(comps.p.z, comps.over_point.z);

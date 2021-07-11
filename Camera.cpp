@@ -1,6 +1,10 @@
 #include <cmath>
 #include <thread>
 
+#define MULTI_THREAD 1
+
+int current = 0;
+
 struct Camera{
     int hsize, vsize;
     float fov;
@@ -51,10 +55,15 @@ void render_thread(Canvas *image, Camera *cam, World *w, const int &mod) {
       Color c = color_at(*w, r);
       write_pixel(*image, x, y, c);
     }
+    //std::cout << "\rProgress: " << (y * 100) / cam->vsize << "%" << std::flush;
+    if (current < y+1) current = y+1;
+    std::cout << "\rLine: " << current << "/" << cam->vsize  << "\t" << std::flush;
   }
 }
 
 Canvas render(Camera& cam, World& world){
+
+#if MULTI_THREAD
     std::cout << "Rendering with " << std::thread::hardware_concurrency()
     << " threads." << std::endl;
     Canvas image = Canvas(cam.hsize, cam.vsize);
@@ -66,20 +75,24 @@ Canvas render(Camera& cam, World& world){
     for (auto &thread : threads) {
         thread.join();
     }
+    std::cout << "\n"; 
+    return image;
+#else
+    std::cout << "Rendering with 1 thread" << std::endl;
+    Canvas image = Canvas(cam.hsize, cam.vsize);
+    for (int y = 0; y < cam.vsize; y++){
+        for (int x = 0; x < cam.hsize; x++){
+            Ray ray = cam.ray_for_pixel(x, y);
+            Color color = color_at(world, ray);
+            write_pixel(image, x, y, color);
+        }
+        //std::cout << "\rProgress: " << (y * 100) / cam.vsize << "%" << std::flush;
+        std::cout << "\rLine: " << y+1 << "/" << cam.vsize << std::flush;
+    }
+    std::cout << "\nDone!" << std::endl;
     return image;
 
-
-    // for (int y = 0; y < cam.vsize; y++){
-    //     for (int x = 0; x < cam.hsize; x++){
-    //         Ray ray = cam.ray_for_pixel(x, y);
-    //         Color color = color_at(world, ray);
-    //         write_pixel(image, x, y, color);
-    //     }
-    //     //std::cout << "\rProgress: " << (y * 100) / cam.vsize << "%" << std::flush;
-    //     std::cout << "\rLine: " << y+1 << "/" << cam.vsize << std::flush;
-    // }
-    // std::cout << "\nDone!" << std::endl;
-    // return image;
+#endif
 }
 
 
