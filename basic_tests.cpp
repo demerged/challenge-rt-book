@@ -12,6 +12,7 @@
 #include "Computation.cpp"
 #include "Shape.cpp"
 #include "Sphere.cpp"
+#include "Plane.cpp"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -607,7 +608,7 @@ TEST(RayCasting, RayScaleTest) {
     EXPECT_EQ(r2.direction, vector(0, 3, 0));
 }
 
-TEST(RayCasting, SphereTransformTest) {
+TEST(RayCasting, TestShapeTransformTest) {
     TestShape s = TestShape();
     EXPECT_EQ(s.transform, Matrix::get_identity());
 
@@ -616,14 +617,14 @@ TEST(RayCasting, SphereTransformTest) {
     EXPECT_EQ(s.transform, t);
 }
 
-TEST(RayCasting, SphereRayIntersectTest) {
+TEST(RayCasting, TestShapeRayIntersectTest) {
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
-    Sphere s = Sphere();
+    TestShape s = TestShape();
     s.set_transform(scaling(2, 2, 2));
     auto xs = s.intersect(r);
-    EXPECT_EQ(xs.size(), 2);
-    EXPECT_EQ(xs[0].t, 3);
-    EXPECT_EQ(xs[1].t, 7);
+    EXPECT_EQ(s.saved_ray.origin, point(0, 0, -2.5)); 
+    EXPECT_EQ(s.saved_ray.direction, vector(0, 0, 0.5)); 
+    
 }
 
 TEST(LightShading, SphereNormalXaxisTest) {
@@ -656,15 +657,15 @@ TEST(LightShading, SphereNormalNormalizedTest) {
     EXPECT_EQ(n, normalize(n));
 }
 
-TEST(LightShading, SphereNormalTranslated) {
-    auto s = Sphere();
+TEST(LightShading, TestShapeNormalTranslated) {
+    TestShape s = TestShape();
     s.set_transform(translation(0, 1, 0));
     tuple n = s.normal_at(point(0, 1.70711, -0.70711));
     EXPECT_EQ(n, vector(0, 0.70711, -0.70711));
 }
 
-TEST(LightShading, SphereNormalTransformed) {
-    auto s = Sphere();
+TEST(LightShading, TestShapeNormalTransformed) {
+    TestShape s = TestShape();
     Matrix m = scaling(1, 0.5, 1) * rotation_z(PI / 5);
     s.set_transform(m);
     tuple n = s.normal_at(point(0, sqrt(2) / 2, -sqrt(2) / 2));
@@ -954,4 +955,42 @@ TEST(Shadows, HitOffsetPointTest){
     Computation comps = prepare_computations(i, r);
     EXPECT_LT(comps.over_point.z, -EPSILON/2.0f);
     EXPECT_GT(comps.p.z, comps.over_point.z);
+}
+
+TEST(Planes, PlaneNormalTest){
+    Plane p = Plane();
+    tuple n1 = p.local_normal_at(point(0, 0, 0));
+    tuple n2 = p.local_normal_at(point(10, 0, -10));
+    tuple n3 = p.local_normal_at(point(-5, 0, 150));
+    EXPECT_EQ(n1, vector(0, 1, 0));
+    EXPECT_EQ(n2, vector(0, 1, 0));
+    EXPECT_EQ(n3, vector(0, 1, 0));
+}
+
+TEST(Planes, PlaneIntersectTest){
+    Plane p = Plane();
+    Ray r = Ray(point(0, 10, 0), vector(0, 0, 1));
+    auto xs = p.local_intersect(r);
+    EXPECT_EQ(xs.size(), 0);
+
+    Plane p2 = Plane();
+    Ray r2 = Ray(point(0, 0, 0), vector(0, 0, 1));
+    auto xs2 = p2.local_intersect(r2);
+    EXPECT_EQ(xs2.size(), 0);
+}
+
+TEST(Planes, PlaneAboveIntersectTest){
+    Plane p = Plane();
+    Ray r = Ray(point(0, 1, 0), vector(0, -1, 0));
+    auto xs = p.local_intersect(r);
+    EXPECT_EQ(xs.size(), 1);
+    EXPECT_EQ(xs[0].s, &p);
+}
+
+TEST(Planes, PlaneBelowIntersectTest){
+    Plane p = Plane();
+    Ray r = Ray(point(0, -1, 0), vector(0, 1, 0));
+    auto xs = p.local_intersect(r);
+    EXPECT_EQ(xs.size(), 1);
+    EXPECT_EQ(xs[0].s, &p);
 }

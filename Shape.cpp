@@ -10,8 +10,9 @@ struct Shape {
     Material material;
     void set_transform(const Matrix& m);
     std::vector<Intersection> intersect(Ray r);
-    tuple normal_at(const tuple &world_point);
+    tuple normal_at(const tuple& world_point);
     virtual std::vector<Intersection> local_intersect(Ray r) = 0;
+    virtual tuple local_normal_at(const tuple& local_point) = 0;
 };
 
 void Shape::set_transform(const Matrix& m) {
@@ -24,10 +25,10 @@ std::vector<Intersection> Shape::intersect(Ray r) {
     return local_intersect(local_ray);
 }
 
-tuple Shape::normal_at(const tuple &world_point) {
-    tuple object_point = inverse(transform) * world_point;
-    tuple object_normal = object_point - point(0, 0, 0);
-    tuple world_normal = transpose(inverse(transform)) * object_normal;
+tuple Shape::normal_at(const tuple& world_point) {
+    tuple local_point = inverse(transform) * world_point;
+    tuple local_normal = local_normal_at(local_point);
+    tuple world_normal = transpose(inverse(transform)) * local_normal;
     world_normal.w = 0;
     return normalize(world_normal);
 }
@@ -36,8 +37,16 @@ tuple Shape::normal_at(const tuple &world_point) {
 
 struct TestShape : public Shape {
     std::vector<Intersection> local_intersect(Ray r) override;
+    tuple local_normal_at(const tuple& local_point) override;
+public:
+    Ray saved_ray = Ray(point(0, 0, 0), point(0, 0, 0));
 };
 
 std::vector<Intersection> TestShape::local_intersect(Ray r) {
+    saved_ray = r;
     return {};
+}
+
+tuple TestShape::local_normal_at(const tuple& p) {
+    return vector(p.x, p.y, p.z);
 }
