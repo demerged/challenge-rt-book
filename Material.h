@@ -1,8 +1,12 @@
 #pragma once
+#include <optional>
 #include "rt.h"
+
+struct Pattern;
 
 struct Material {
 	Color color;
+	Pattern* pattern = NULL;
 	float ambient, diffuse, specular, shininess;
 
 	Material() {

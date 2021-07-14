@@ -13,6 +13,10 @@
 #include "Shape.cpp"
 #include "Sphere.cpp"
 #include "Plane.cpp"
+#include "Stripe_pattern.cpp"
+#include "Gradient_pattern.cpp"
+#include "Ring_pattern.cpp"
+#include "Checker_pattern.cpp"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -717,35 +721,35 @@ TEST(LightShading, MaterialsLightingTest) {
     Material m = Material();
     tuple position = point(0, 0, 0);
 
-
+    Sphere s = Sphere();
     tuple eyev = vector(0, 0, -1);
     tuple normalv = vector(0, 0, -1);
     Point_light light = Point_light(point(0, 0, -10), Color(1, 1, 1));
-    Color result = lighting(m, light, position, eyev, normalv, false);
+    Color result = lighting(m, &s, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.9, 1.9, 1.9));
 
     eyev = vector(0, sqrt(2) / 2, -sqrt(2) / 2);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 0, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv, false);
+    result = lighting(m, &s, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.0, 1.0, 1.0));
 
     eyev = vector(0, 0, -1);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 10, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv, false);
+    result = lighting(m, &s, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(0.7364, 0.7364, 0.7364));
 
     eyev = vector(0, -sqrt(2) / 2, -sqrt(2) / 2);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 10, -10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv, false);
+    result = lighting(m, &s, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(1.63639, 1.63639, 1.63639));
 
     eyev = vector(0, 0, -1);
     normalv = vector(0, 0, -1);
     light = Point_light(point(0, 0, 10), Color(1, 1, 1));
-    result = lighting(m, light, position, eyev, normalv, false);
+    result = lighting(m, &s, light, position, eyev, normalv, false);
     EXPECT_EQ(result, Color(0.1, 0.1, 0.1));
 }
 
@@ -993,4 +997,122 @@ TEST(Planes, PlaneBelowIntersectTest){
     auto xs = p.local_intersect(r);
     EXPECT_EQ(xs.size(), 1);
     EXPECT_EQ(xs[0].s, &p);
+}
+
+TEST(Patterns, TestPatternCreationTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    TestPattern pattern = TestPattern(white, black);
+    EXPECT_EQ(pattern.a, white);
+    EXPECT_EQ(pattern.b, black);
+}
+
+TEST(Patterns, StripeAtTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Stripe_pattern pattern = Stripe_pattern(white, black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 1, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 2, 0)) , white);
+    
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 1)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 2)) , white);
+    
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0.9, 0, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(1, 0, 0)) , black);
+    EXPECT_EQ(pattern.pattern_at(point(-0.1, 0, 0)) , black);
+    EXPECT_EQ(pattern.pattern_at(point(-1, 0, 0)) , black);
+    EXPECT_EQ(pattern.pattern_at(point(-1.1, 0, 0)) , white);
+}
+
+TEST(Patterns, PatternLightingTest){
+    Material m;
+    Sphere s = Sphere();
+    Stripe_pattern p = Stripe_pattern(Color(1, 1, 1), Color(0, 0, 0));
+    m.pattern = &p;
+    m.ambient = 1;
+    m.diffuse = 0;
+    m.specular = 0;
+    auto eyev = vector(0, 0, -1);
+    auto normalv = vector(0, 0, -1);
+    auto light = Point_light(point(0, 0, -10), Color(1, 1, 1));
+    auto c1 = lighting(m, &s, light, point(0.9, 0, 0), eyev, normalv, false);
+    auto c2 = lighting(m, &s, light, point(1.1, 0, 0), eyev, normalv, false);
+    EXPECT_EQ(c1 , Color(1, 1, 1));
+    EXPECT_EQ(c2 , Color(0, 0, 0));
+}
+
+TEST(Patterns, PatternObjectTransformationTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Sphere object = Sphere();
+    object.set_transform(scaling(2, 2, 2));
+    Stripe_pattern pattern = Stripe_pattern(white, black);
+    Color c = pattern_at_shape(&pattern, &object, point(1.5, 0, 0));
+    EXPECT_EQ(c, white);
+}
+
+TEST(Patterns, PatternTransformationTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Sphere object = Sphere();
+    Stripe_pattern pattern = Stripe_pattern(white, black);
+    pattern.set_transform(scaling(2, 2, 2));
+    Color c = pattern_at_shape(&pattern, &object, point(1.5, 0, 0));
+    EXPECT_EQ(c, white);
+}
+TEST(Patterns, PatternAndObjectTransformationTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Sphere object = Sphere();
+    object.set_transform(scaling(2, 2, 2));
+    Stripe_pattern pattern = Stripe_pattern(white, black);
+    pattern.set_transform(translation(0.5, 0, 0));
+    Color c = pattern_at_shape(&pattern, &object, point(2.5, 0, 0));
+    EXPECT_EQ(c, white);
+}
+
+TEST(Patterns, GradientPatternTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Gradient_pattern pattern = Gradient_pattern(white, black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)) , white);
+    EXPECT_EQ(pattern.pattern_at(point(0.25, 0, 0)) , Color(0.75, 0.75, 0.75));
+    EXPECT_EQ(pattern.pattern_at(point(0.5, 0, 0)) , Color(0.5, 0.5, 0.5));
+    EXPECT_EQ(pattern.pattern_at(point(0.75, 0, 0)) , Color(0.25, 0.25, 0.25));
+}
+
+TEST(Patterns, RingPatternTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+
+    Ring_pattern pattern = Ring_pattern(white, black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)), white);
+    EXPECT_EQ(pattern.pattern_at(point(1, 0, 0)), black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 1)), black);
+    EXPECT_EQ(pattern.pattern_at(point(0.708, 0, 0.708)), black);
+}
+
+TEST(Patterns, CheckerPatternTest){
+    Color black = Color(0, 0, 0);
+    Color white = Color(1, 1, 1);
+    
+    Checker_pattern pattern = Checker_pattern(white, black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)), white); 
+    EXPECT_EQ(pattern.pattern_at(point(0.99, 0, 0)), white);
+    EXPECT_EQ(pattern.pattern_at(point(1.01, 0, 0)), black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)), white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0.99, 0)), white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 1.01, 0)), black);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)), white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 0.99)),  white);
+    EXPECT_EQ(pattern.pattern_at(point(0, 0, 1.01)), black);
 }

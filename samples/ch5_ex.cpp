@@ -1,4 +1,5 @@
 #include "../Ray.cpp"
+#include "../Sphere.cpp"
 
 int main() {
 	float wall_z = 10.f;
@@ -20,7 +21,7 @@ int main() {
 
 			tuple direction = point(world_x, world_y, wall_z) - origin;
 			Ray ray = Ray(origin, normalize(direction));
-			auto xs = intersect(s, ray);
+			auto xs = s.intersect(ray);
 			Intersection is = hit(xs);
 
 			if (!is.none)

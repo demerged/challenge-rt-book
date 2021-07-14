@@ -4,6 +4,7 @@
 #include "matrix.h"
 #include "Intersection.cpp"
 #include "Ray.cpp"
+#include "Shape.cpp"
 
 
 struct Sphere : public Shape{
@@ -21,10 +22,10 @@ struct Sphere : public Shape{
     tuple local_normal_at(const tuple& local_point) override;
 };
 
-std::vector<Intersection> Sphere::local_intersect(Ray local_ray){
-    tuple sphere_to_ray = local_ray.origin - point(0, 0, 0);
-    float a = dot(local_ray.direction, local_ray.direction);
-    float b = 2 * dot(local_ray.direction, sphere_to_ray);
+std::vector<Intersection> Sphere::local_intersect(Ray r){
+    tuple sphere_to_ray = r.origin - point(0, 0, 0);
+    float a = dot(r.direction, r.direction);
+    float b = 2 * dot(r.direction, sphere_to_ray);
     float c = dot(sphere_to_ray, sphere_to_ray) - 1;
     float discriminant = b*b - 4 * a * c;
 

@@ -56,8 +56,10 @@ void render_thread(Canvas *image, Camera *cam, World *w, const int &mod) {
       write_pixel(*image, x, y, c);
     }
     //std::cout << "\rProgress: " << (y * 100) / cam->vsize << "%" << std::flush;
-    if (current < y+1) current = y+1;
-    std::cout << "\rLine: " << current << "/" << cam->vsize  << "\t" << std::flush;
+    if (current < y+1) {
+        current = y+1;
+        std::cout << "\rLine: " << current << "/" << cam->vsize  << "\t" << std::flush;
+    }
   }
 }
 

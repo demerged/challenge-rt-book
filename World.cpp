@@ -58,7 +58,7 @@ Color shade_hit(World& w, const Computation& comps){
 	if (w.light_source.has_value())
 		light = *w.light_source;
 	bool in_shadow =  is_shadowed(w, comps.over_point);
-	return lighting(comps.s->material, light, comps.p, comps.eyev, comps.normalv, in_shadow);
+	return lighting(comps.s->material, comps.s, light, comps.over_point, comps.eyev, comps.normalv, in_shadow);
 }
 
 Color color_at(World& w, Ray r){

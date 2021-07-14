@@ -6,7 +6,7 @@
 #include <sstream>
 
 #define PI 3.14159
-#define EPSILON 0.01
+#define EPSILON 0.001
 
 bool cmp_f(float a, float b) {
     return (abs(a - b) < EPSILON);
