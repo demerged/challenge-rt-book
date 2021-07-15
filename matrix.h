@@ -140,19 +140,70 @@ bool is_invertible(const Matrix &mat){
     return determinant(mat) != 0;
 }
 
-Matrix inverse(const Matrix &mat){
-    if (!is_invertible(mat))
+
+// much faster inverse of matrix calculation
+Matrix inverse(const Matrix &a){
+    if (!is_invertible(a))
         throw std::runtime_error("Matrix is non invertible");
-    Matrix mat2 = Matrix(mat.m_size);
-    for (int i = 0; i < mat.m_size; ++i) {
-        for (int j = 0; j < mat.m_size; ++j) {
-            float c = cofactor(mat, i, j);
-            //mat2.m[j][i] = my_round(c / determinant(mat), 5);
-            mat2.m[j][i] = c / determinant(mat);
-        }
-    }
-    return mat2;
+    Matrix mat2 = Matrix(a.m_size);
+    
+    auto s0 = a.m[0][0] * a.m[1][1] - a.m[1][0] * a.m[0][1];
+    auto s1 = a.m[0][0] * a.m[1][2] - a.m[1][0] * a.m[0][2];
+    auto s2 = a.m[0][0] * a.m[1][3] - a.m[1][0] * a.m[0][3];
+    auto s3 = a.m[0][1] * a.m[1][2] - a.m[1][1] * a.m[0][2];
+    auto s4 = a.m[0][1] * a.m[1][3] - a.m[1][1] * a.m[0][3];
+    auto s5 = a.m[0][2] * a.m[1][3] - a.m[1][2] * a.m[0][3];
+
+    auto c5 = a.m[2][2] * a.m[3][3] - a.m[3][2] * a.m[2][3];
+    auto c4 = a.m[2][1] * a.m[3][3] - a.m[3][1] * a.m[2][3];
+    auto c3 = a.m[2][1] * a.m[3][2] - a.m[3][1] * a.m[2][2];
+    auto c2 = a.m[2][0] * a.m[3][3] - a.m[3][0] * a.m[2][3];
+    auto c1 = a.m[2][0] * a.m[3][2] - a.m[3][0] * a.m[2][2];
+    auto c0 = a.m[2][0] * a.m[3][1] - a.m[3][0] * a.m[2][1];
+
+    // Should check for 0 determinant
+    auto invdet = 1.0 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
+
+    auto b = Matrix(4);
+
+    b.m[0][0] = ( a.m[1][1] * c5 - a.m[1][2] * c4 + a.m[1][3] * c3) * invdet;
+    b.m[0][1] = (-a.m[0][1] * c5 + a.m[0][2] * c4 - a.m[0][3] * c3) * invdet;
+    b.m[0][2] = ( a.m[3][1] * s5 - a.m[3][2] * s4 + a.m[3][3] * s3) * invdet;
+    b.m[0][3] = (-a.m[2][1] * s5 + a.m[2][2] * s4 - a.m[2][3] * s3) * invdet;
+
+    b.m[1][0] = (-a.m[1][0] * c5 + a.m[1][2] * c2 - a.m[1][3] * c1) * invdet;
+    b.m[1][1] = ( a.m[0][0] * c5 - a.m[0][2] * c2 + a.m[0][3] * c1) * invdet;
+    b.m[1][2] = (-a.m[3][0] * s5 + a.m[3][2] * s2 - a.m[3][3] * s1) * invdet;
+    b.m[1][3] = ( a.m[2][0] * s5 - a.m[2][2] * s2 + a.m[2][3] * s1) * invdet;
+
+    b.m[2][0] = ( a.m[1][0] * c4 - a.m[1][1] * c2 + a.m[1][3] * c0) * invdet;
+    b.m[2][1] = (-a.m[0][0] * c4 + a.m[0][1] * c2 - a.m[0][3] * c0) * invdet;
+    b.m[2][2] = ( a.m[3][0] * s4 - a.m[3][1] * s2 + a.m[3][3] * s0) * invdet;
+    b.m[2][3] = (-a.m[2][0] * s4 + a.m[2][1] * s2 - a.m[2][3] * s0) * invdet;
+
+    b.m[3][0] = (-a.m[1][0] * c3 + a.m[1][1] * c1 - a.m[1][2] * c0) * invdet;
+    b.m[3][1] = ( a.m[0][0] * c3 - a.m[0][1] * c1 + a.m[0][2] * c0) * invdet;
+    b.m[3][2] = (-a.m[3][0] * s3 + a.m[3][1] * s1 - a.m[3][2] * s0) * invdet;
+    b.m[3][3] = ( a.m[2][0] * s3 - a.m[2][1] * s1 + a.m[2][2] * s0) * invdet;
+
+    return b;
 }
+ 
+// inverse matrix function from the book
+//-----------------------------------------------------------------------------
+// Matrix inverse(const Matrix &mat){
+//     if (!is_invertible(mat))
+//         throw std::runtime_error("Matrix is non invertible");
+//     Matrix mat2 = Matrix(mat.m_size);
+//     for (int i = 0; i < mat.m_size; ++i) {
+//         for (int j = 0; j < mat.m_size; ++j) {
+//             float c = cofactor(mat, i, j);
+//             //mat2.m[j][i] = my_round(c / determinant(mat), 5);
+//             mat2.m[j][i] = c / determinant(mat);
+//         }
+//     }
+//     return mat2;
+// }
 
 Matrix translation(float x, float y, float z){
     Matrix transform = Matrix::get_identity();
