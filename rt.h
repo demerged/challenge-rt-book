@@ -149,9 +149,9 @@ int convert_to_pixel(float value){
     else if (new_value < 0) new_value = 0;
     return roundf(new_value);
 }
-void canvas_to_ppm(const Canvas &c){
+void canvas_to_ppm(const Canvas &c, const std::string& file_name){
     std::stringstream ss;
-    std::ofstream outFile("out.ppm");
+    std::ofstream outFile(file_name);
     ss << "P3\n";
     ss << c.width << " " << c.height << "\n";
     ss << "255\n";

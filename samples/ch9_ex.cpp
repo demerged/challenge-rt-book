@@ -82,10 +82,10 @@ int main(){
     world.shapes.push_back(left);
     world.shapes.push_back(right);
     world.light_source = Point_light(point(-10, 10, -10), Color(1, 1, 1));
-    Camera cam = Camera(5000, 5000, PI/3.0f);
+    Camera cam = Camera(256, 256, PI/3.0f);
     cam.set_transform(view_transform(point(0, 1.5, -5), point(0, 1, 0),vector(0, 1, 0)));
     // cam.set_transform(view_transform(point(0, 10, 0), point(0, 0, 0),vector(0, 0, 1)));
     // cam.set_transform(view_transform(point(5, 1, -5), point(-5, 3, 5),vector(0, 1, 0)));
     Canvas canvas = render(cam, world);
-    canvas_to_ppm(canvas);
+    canvas_to_ppm(canvas, "out.ppm");
 }

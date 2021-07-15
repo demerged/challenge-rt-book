@@ -916,7 +916,7 @@ TEST(WorldScene, ConstructingRayThroughCornerTest){
 
 TEST(WorldScene, ConstructingRayCameraTransformedTest){
     Camera cam = Camera(201, 101, PI/2.0f);
-    cam.transform = rotation_y(PI/4.0f) * translation(0, -2, 5);
+    cam.set_transform(rotation_y(PI/4.0f) * translation(0, -2, 5));
     Ray r = cam.ray_for_pixel(100, 50);
     EXPECT_EQ(r.origin, point(0, 2, -5));
     EXPECT_EQ(r.direction, vector(sqrt(2.0f) / 2.0f, 0, -sqrt(2.0f) / 2.0f));
@@ -928,7 +928,7 @@ TEST(WorldScene, RenderingWorldTest){
     tuple from = point(0, 0, -5);
     tuple to = point(0, 0, 0);
     tuple up = vector(0, 1, 0);
-    cam.transform = view_transform(from, to, up);
+    cam.set_transform(view_transform(from, to, up));
     Canvas image = render(cam, world);
     EXPECT_EQ(pixel_at(image, 5, 5), Color(0.38066, 0.47583, 0.2855));
 }
@@ -954,7 +954,7 @@ TEST(Shadows, NoShadowObjectBehindPointTest){
 TEST(Shadows, HitOffsetPointTest){
     Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
     Sphere s = Sphere();
-    s.transform = translation(0, 0, 1);
+    s.set_transform(translation(0, 0, 1));
     Intersection i = Intersection(5, &s);
     Computation comps = prepare_computations(i, r);
     EXPECT_LT(comps.over_point.z, -EPSILON/2.0f);

@@ -81,3 +81,8 @@ samples/ch7_ex
 samples/render
 .idea/
 todo
+samples/exp/.png
+samples/exp/animation.gif
+samples/exp/experiment.cpp
+samples/exp/mgif_convert.sh
+samples/exp/mgif_ffmpeg.sh
