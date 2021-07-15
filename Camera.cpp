@@ -11,6 +11,7 @@ struct Camera{
     float pixel_size;
     float half_view, aspect, half_width, half_height;
     Matrix transform = Matrix(4);
+    Matrix inversed_transform = Matrix(4);
     Camera(int hs, int vs, float fv)
             : hsize(hs)
             , vsize(vs)
@@ -28,6 +29,7 @@ struct Camera{
                 pixel_size = (half_width * 2) / hsize;
 
                 transform = Matrix::get_identity();
+                inversed_transform = Matrix::get_identity();
             };
 
     Ray ray_for_pixel(int px, int py){
@@ -37,11 +39,16 @@ struct Camera{
         float world_x = half_width  - xoffset;
         float world_y = half_height - yoffset;
 
-        tuple pixel = inverse(transform) * point(world_x, world_y, -1);
-        tuple origin = inverse(transform) * point(0, 0, 0);
+        tuple pixel = inversed_transform * point(world_x, world_y, -1);
+        tuple origin = inversed_transform * point(0, 0, 0);
         tuple direction = normalize(pixel - origin);
 
         return Ray(origin, direction);
+    }
+
+    void set_transform(const Matrix& mat){
+        transform = mat;
+        inversed_transform = inverse(transform);
     }
 };
 
