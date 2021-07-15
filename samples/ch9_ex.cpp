@@ -16,7 +16,7 @@
 
 int main(){
     std::shared_ptr<Shape> floor = std::make_shared<Plane>();
-    floor->transform = scaling(10, 0.05, 10);
+    floor->set_transform(scaling(10, 0.05, 10));
     floor->material = Material();
     floor->material.color = Color(1, 0.9, 0.9);
     floor->material.specular = 0;
@@ -26,7 +26,7 @@ int main(){
         
     
     std::shared_ptr<Shape> back_drop = std::make_shared<Plane>();
-    back_drop->transform = translation(0, 0, 10) * rotation_x(PI/2) * scaling(10, 0.01, 10);
+    back_drop->set_transform(translation(0, 0, 10) * rotation_x(PI/2) * scaling(10, 0.01, 10));
     back_drop->material = Material();
     back_drop->material.color = Color(0.63, 0.69, 0.75);
     back_drop->material.diffuse = 0.8;
@@ -39,7 +39,7 @@ int main(){
     
 
     std::shared_ptr<Shape> middle = std::make_shared<Sphere>();
-    middle->transform = translation(-0.5, 1, 0.5);
+    middle->set_transform(translation(-0.5, 1, 0.5));
     middle->material = Material();
     middle->material.color = Color(0.1, 1, 0.5);
     middle->material.diffuse = 0.7;
@@ -53,7 +53,7 @@ int main(){
     middle->material.pattern->set_transform(scaling(0.25, 0.25, 0.25));
 
     std::shared_ptr<Shape> right = std::make_shared<Sphere>();
-    right->transform = translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5);
+    right->set_transform(translation(1.5, 0.5, -0.5) * scaling(0.5, 0.5, 0.5));
     right->material = Material();
     right->material.color = Color(0.1, 1, 0.5);
     right->material.diffuse = 0.7;
@@ -66,7 +66,7 @@ int main(){
     
 
     std::shared_ptr<Shape> left = std::make_shared<Sphere>();
-    left->transform = translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33);
+    left->set_transform(translation(-1.5, 0.33, -0.75) * scaling(0.33, 0.33, 0.33));
     left->material = Material();
     left->material.color = Color(1, 0.8, 0.1);
     left->material.diffuse = 0.7;
@@ -82,10 +82,10 @@ int main(){
     world.shapes.push_back(left);
     world.shapes.push_back(right);
     world.light_source = Point_light(point(-10, 10, -10), Color(1, 1, 1));
-    Camera cam = Camera(1024, 1024, PI/3.0f);
+    Camera cam = Camera(5000, 5000, PI/3.0f);
     cam.set_transform(view_transform(point(0, 1.5, -5), point(0, 1, 0),vector(0, 1, 0)));
-    // cam.transform = view_transform(point(0, 10, 0), point(0, 0, 0),vector(0, 0, 1));
-    // cam.transform = view_transform(point(5, 1, -5), point(-5, 3, 5),vector(0, 1, 0));
+    // cam.set_transform(view_transform(point(0, 10, 0), point(0, 0, 0),vector(0, 0, 1)));
+    // cam.set_transform(view_transform(point(5, 1, -5), point(-5, 3, 5),vector(0, 1, 0)));
     Canvas canvas = render(cam, world);
     canvas_to_ppm(canvas);
 }

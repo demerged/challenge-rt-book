@@ -8,6 +8,7 @@ struct Pattern {
     Color a;
     Color b;
     Matrix transform = Matrix::get_identity();
+    Matrix inversed_transform = Matrix::get_identity();
     
     void set_transform(const Matrix& m);
     Color pattern_at_shape(Pattern* p, Shape* shape, tuple world_point);
@@ -16,11 +17,12 @@ struct Pattern {
 
 void Pattern::set_transform(const Matrix& m){
     transform = m;
+    inversed_transform = inverse(transform);
 }
 
 Color pattern_at_shape(Pattern* p, Shape* shape, tuple world_point){
-    tuple object_point = inverse(shape->transform) * world_point;
-    tuple pattern_point = inverse(p->transform) * object_point;
+    tuple object_point = shape->inversed_transform * world_point;
+    tuple pattern_point = p->inversed_transform * object_point;
 
     return p->pattern_at(pattern_point);
 }
