@@ -4,6 +4,7 @@
 struct Plane : public Shape {
     std::vector<Intersection> local_intersect(Ray r) override;
     tuple local_normal_at(const tuple& local_point) override;
+    ~Plane() {}
 };
 
 std::vector<Intersection> Plane::local_intersect(Ray r) {

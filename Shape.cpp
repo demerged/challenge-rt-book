@@ -14,6 +14,7 @@ struct Shape {
     tuple normal_at(const tuple& world_point);
     virtual std::vector<Intersection> local_intersect(Ray r) = 0;
     virtual tuple local_normal_at(const tuple& local_point) = 0;
+    virtual ~Shape() = default;
 };
 
 void Shape::set_transform(const Matrix& m) {

@@ -11,10 +11,10 @@ struct Ray{
     tuple position(float t){
         return origin + direction * t;
     }
-    Ray transform(Matrix m);
+    Ray transform(Matrix& m);
 };
 
-Ray Ray::transform(Matrix m) {
+Ray Ray::transform(Matrix& m) {
     Ray result(m * origin, m * direction);
     return result;
 }

@@ -29,6 +29,10 @@ Color pattern_at_shape(Pattern* p, Shape* shape, tuple world_point){
 
 
 struct TestPattern : public Pattern {
+    TestPattern(){
+         a = Color(1, 1, 1);
+         b = Color(0, 0, 0);
+    }
     TestPattern(Color a_, Color b_) {
         a = a_;
         b = b_;

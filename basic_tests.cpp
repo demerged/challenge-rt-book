@@ -808,7 +808,7 @@ TEST(WorldScene, ShadingIntersectionTest){
     std::shared_ptr<Shape> s = w.shapes[0];
     Intersection i = Intersection(4, s.get());
     Computation comps = prepare_computations(i, r);
-    Color c = shade_hit(w, comps);
+    Color c = shade_hit(w, comps, 1);
     EXPECT_EQ(c, Color(0.38066, 0.47583, 0.2855));
 }
 
@@ -819,7 +819,7 @@ TEST(WorldScene, ShadingIntersectionFromInsideTest){
     std::shared_ptr<Shape> s = w.shapes[1];
     Intersection i = Intersection(0.5, s.get());
     Computation comps = prepare_computations(i, r);
-    Color c = shade_hit(w, comps);
+    Color c = shade_hit(w, comps, 1);
     EXPECT_EQ(c, Color(0.90498, 0.90498, 0.90498));
 }
 
@@ -1115,4 +1115,300 @@ TEST(Patterns, CheckerPatternTest){
     EXPECT_EQ(pattern.pattern_at(point(0, 0, 0)), white);
     EXPECT_EQ(pattern.pattern_at(point(0, 0, 0.99)),  white);
     EXPECT_EQ(pattern.pattern_at(point(0, 0, 1.01)), black);
+}
+
+TEST(Reflecttion, ReflectivityForDefaultMaterialTest){
+    Material m = Material();
+    EXPECT_FLOAT_EQ(m.reflective, 0.0f);
+}
+
+TEST(Reflection, PrecomputeReflectionVectorTest){
+    std::shared_ptr<Shape> shape = std::make_shared<Plane>();
+    Ray r = Ray(point(0, 1, -1), vector(0, -std::sqrt(2.)/2., std::sqrt(2.)/2.));
+    Intersection i = Intersection(std::sqrt(2), shape.get());
+    Computation comps = prepare_computations(i, r);
+    EXPECT_EQ(comps.reflectv, vector(0, std::sqrt(2)/2, std::sqrt(2)/2));
+}
+
+TEST(Reflection, ReflectedColorTest){
+    World w = World::get_default_world();
+    Ray r = Ray(point(0, 0, 0), vector(0, 0, 1));
+    std::shared_ptr<Shape> shape = w.shapes[1];
+    shape->material.ambient = 1.0;
+    Intersection i = Intersection(1, shape.get());
+    Computation comps = prepare_computations(i, r);
+    Color color = reflected_color(w, comps, 0);
+    EXPECT_EQ(color, Color(0, 0, 0));
+}
+
+TEST(Reflection, ReflectedColorForReflectMaterialTest){
+    World w = World::get_default_world();
+    std::shared_ptr<Shape> shape = std::make_shared<Plane>();
+    shape->material.reflective = 0.5;
+    shape->set_transform(translation(0, -1, 0));
+    w.shapes.push_back(shape);
+    Ray r = Ray(point(0, 0, -3), vector(0, -std::sqrt(2)/2.0, std::sqrt(2)/2.0));
+    Intersection i = Intersection(std::sqrt(2), shape.get());
+    Computation comps = prepare_computations(i, r);
+    Color color = reflected_color(w, comps, 1);
+    EXPECT_EQ(color, Color(0.19032, 0.2379, 0.14274));
+}
+
+TEST(Reflection, ShadeHitReflectiveMaterialTest){
+    World w = World::get_default_world();
+    std::shared_ptr<Shape> shape = std::make_shared<Plane>();
+    shape->material.reflective = 0.5;
+    shape->set_transform(translation(0, -1, 0));
+    w.shapes.push_back(shape);
+    Ray r = Ray(point(0, 0, -3), vector(0, -std::sqrt(2)/2.0, std::sqrt(2)/2.0));
+    Intersection i = Intersection(std::sqrt(2), shape.get());
+    Computation comps = prepare_computations(i, r);
+    Color color = shade_hit(w, comps, 1);
+    EXPECT_EQ(color, Color(0.87677, 0.92436, 0.82918));
+}
+
+TEST(Reflection, InfiniteRecursionTest){
+    World w = World();
+    w.light_source = Point_light(point(0, 0, 0), Color(1, 1, 1));
+
+    std::shared_ptr<Shape> lower = std::make_shared<Plane>();
+    lower->material.reflective = 1;
+    lower->set_transform(translation(0, -1, 0));
+
+    std::shared_ptr<Shape> upper = std::make_shared<Plane>();
+    upper->material.reflective = 1;
+    upper->set_transform(translation(0, 1, 0));
+
+    w.shapes.push_back(lower);
+    w.shapes.push_back(upper);
+    Ray r = Ray(point(0, 0, 0), vector(0, 1, 0));
+    color_at(w, r);
+}
+
+TEST(Reflection, MaximumRecursionTest){
+    World w = World();
+    w.light_source = Point_light(point(0, 0, 0), Color(1, 1, 1));
+
+    std::shared_ptr<Shape> shape = std::make_shared<Plane>();
+    shape->material.reflective = 1;
+    shape->set_transform(translation(0, -1, 0));
+    w.shapes.push_back(shape);
+    Ray r = Ray(point(0, 0, -3), vector(0, -std::sqrt(2)/2, std::sqrt(2)/2));
+    Intersection i = Intersection(std::sqrt(2), shape.get());
+    Computation comps = prepare_computations(i, r);
+    Color color = reflected_color(w, comps, 0);
+    EXPECT_EQ(color, Color(0, 0, 0));
+}
+
+TEST(Refraction, TranparencyDefaultMaterialTest){
+    Material m = Material();
+    EXPECT_EQ(m.transparency, 0.0);
+    EXPECT_EQ(m.refractive_index, 1.0);
+}
+
+TEST(Refraction, GlassSphereTest){
+    Sphere s = glass_sphere();
+    EXPECT_EQ(s.transform, Matrix::get_identity());
+    EXPECT_EQ(s.material.transparency, 1.0);
+    EXPECT_EQ(s.material.refractive_index, 1.5);
+}
+
+TEST(Refraction, FindingN1N2VariousIntersectionsTest){
+    auto A = glass_sphere();
+    A.set_transform(scaling(2, 2, 2));
+    A.material.refractive_index = 1.5;
+    auto B = glass_sphere();
+    B.set_transform(translation(0, 0, -0.25));
+    B.material.refractive_index = 2.0;
+    auto C = glass_sphere();
+    C.set_transform(translation(0, 0, 0.25));
+    C.material.refractive_index = 2.5;
+
+    Ray r = Ray(point(0, 0, -4), vector(0, 0, 1));
+    std::vector<Intersection> xs = {
+                                    Intersection(2, &A),
+                                    Intersection(2.75, &B),
+                                    Intersection(3.25, &C),
+                                    Intersection(4.75, &B),
+                                    Intersection(5.25, &C),
+                                    Intersection(6, &A) };
+
+    Computation comps = prepare_computations(xs[0], r, xs);
+    EXPECT_FLOAT_EQ(comps.n1, 1.0);
+    EXPECT_FLOAT_EQ(comps.n2, 1.5);
+
+    Computation comps2 = prepare_computations(xs[1], r, xs);
+    EXPECT_FLOAT_EQ(comps2.n1, 1.5);
+    EXPECT_FLOAT_EQ(comps2.n2, 2.0);
+
+    Computation comps3 = prepare_computations(xs[2], r, xs);
+    EXPECT_FLOAT_EQ(comps3.n1, 2.0);
+    EXPECT_FLOAT_EQ(comps3.n2, 2.5);
+
+    Computation comps4 = prepare_computations(xs[3], r, xs);
+    EXPECT_FLOAT_EQ(comps4.n1, 2.5);
+    EXPECT_FLOAT_EQ(comps4.n2, 2.5);
+
+    Computation comps5 = prepare_computations(xs[4], r, xs);
+    EXPECT_FLOAT_EQ(comps5.n1, 2.5);
+    EXPECT_FLOAT_EQ(comps5.n2, 1.5);
+
+    Computation comps6 = prepare_computations(xs[5], r, xs);
+    EXPECT_FLOAT_EQ(comps6.n1, 1.5);
+    EXPECT_FLOAT_EQ(comps6.n2, 1.0);
+}
+
+TEST(Refraction, UnserPointTest){
+    Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
+    auto s = glass_sphere();
+    s.set_transform(translation(0, 0, 1));
+    Intersection i = Intersection(5, &s);
+    std::vector<Intersection> xs = {i};
+    Computation comps = prepare_computations(i, r, xs);
+    EXPECT_GT(comps.under_point.z, EPSILON/2.0);
+    EXPECT_LT(comps.p.z, comps.under_point.z);
+}
+
+TEST(Refraction, RefractedColorOpqaueTest){
+    World w = World::get_default_world();
+    auto shape = w.shapes[0];
+    Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
+    Intersection i1(4, shape.get());
+    Intersection i2(6, shape.get());
+    auto xs = intersections(i1, i2);
+    Computation comps = prepare_computations(xs[0], r, xs);
+    Color c = refracted_color(w, comps, 5);
+    EXPECT_EQ(c, Color(0, 0, 0));
+}
+
+TEST(Refraction, RefractedColorMaximumDepthTest){
+    World w = World::get_default_world();
+    auto shape = w.shapes[0];
+    shape->material.transparency = 1.0;
+    shape->material.refractive_index = 1.5;
+    Ray r = Ray(point(0, 0, -5), vector(0, 0, 1));
+    Intersection i1(4, shape.get());
+    Intersection i2(6, shape.get());
+    auto xs = intersections(i1, i2);
+    Computation comps = prepare_computations(xs[0], r, xs);
+    Color c = refracted_color(w, comps, 0);
+    EXPECT_EQ(c, Color(0, 0, 0));
+}
+
+TEST(Refraction, RefractedColorInternalReflectionTest){
+    World w = World::get_default_world();
+    auto shape = w.shapes[0];
+    shape->material.transparency = 1.0;
+    shape->material.refractive_index = 1.5;
+    Ray r = Ray(point(0, 0, std::sqrt(2)/2.0), vector(0, 1, 0));
+    Intersection i1(-std::sqrt(2)/2.0, shape.get());
+    Intersection i2( std::sqrt(2)/2.0, shape.get());
+    auto xs = intersections(i1, i2);
+    Computation comps = prepare_computations(xs[1], r, xs);
+    Color c = refracted_color(w, comps, 5);
+    EXPECT_EQ(c, Color(0, 0, 0));
+}
+
+TEST(Refraction, RefractedColorRefractedRayTest){
+    World w = World::get_default_world();
+    auto A = w.shapes[0];
+    A->material.ambient = 1.0;
+    TestPattern tp = TestPattern();
+    A->material.pattern = &tp;
+
+    auto B = w.shapes[1];
+    B->material.transparency= 1.0;
+    B->material.refractive_index =1.5;
+
+    Ray r = Ray(point(0, 0, 0.1), vector(0, 1, 0));
+    Intersection i1(-0.9899, A.get());
+    Intersection i2(-0.4899, B.get());
+    Intersection i3( 0.4899, B.get());
+    Intersection i4( 0.9899, A.get());
+    auto xs = intersections(i1, i2, i3, i4);
+    Computation comps = prepare_computations(xs[2], r, xs);
+    Color c = refracted_color(w, comps, 5);
+    // low precision? should be color(0, 0.99888, 0.04725)
+    EXPECT_EQ(c, Color(0, 0.998, 0.047));
+}
+
+TEST(Refraction, RefractedShadeHitTest){
+    World w = World::get_default_world();
+    
+    auto floor = std::make_shared<Plane>();
+    floor->set_transform(translation(0, -1, 0));
+    floor->material.transparency = 0.5;
+    floor->material.refractive_index = 1.5;
+
+    auto ball = std::make_shared<Sphere>();
+    ball->set_transform(translation(0, -3.5, -0.5));
+    ball->material.color = Color(1, 0, 0);
+    ball->material.ambient = 0.5;
+
+    w.shapes.push_back(floor);
+    w.shapes.push_back(ball);
+
+    Ray r = Ray(point(0, 0, -3), vector(0, -std::sqrt(2)/2.0, std::sqrt(2)/2.0));
+    Intersection i1(std::sqrt(2), floor.get());
+    std::vector<Intersection> xs = {i1};
+    Computation comps = prepare_computations(xs[0], r, xs);
+    Color c = shade_hit(w, comps, 5);
+    // low precision? should be color(0, 0.99888, 0.04725)
+    EXPECT_EQ(c, Color(0.93642, 0.68642, 0.68642));
+}
+
+TEST(Frensel, SchlickTotalReflectionTest){
+    auto shape = glass_sphere();
+    Ray r = Ray(point(0, 0, std::sqrt(2)/2.0), vector(0, 1, 0));
+    Intersection i1(-std::sqrt(2)/2.0, &shape);
+    Intersection i2( std::sqrt(2)/2.0, &shape);
+    auto xs = intersections(i1, i2);
+    Computation comps = prepare_computations(xs[1], r, xs);
+    float reflectance = Schlick(comps);
+    EXPECT_FLOAT_EQ(reflectance, 1.0);
+}
+
+TEST(Frensel, SchlickPerpendicularViewingAngleTest){
+    auto shape = glass_sphere();
+    Ray r = Ray(point(0, 0, 0), vector(0, 1, 0));
+    Intersection i1(-1, &shape);
+    Intersection i2( 1, &shape);
+    auto xs = intersections(i1, i2);
+    Computation comps = prepare_computations(xs[1], r, xs);
+    float reflectance = Schlick(comps);
+    EXPECT_TRUE(cmp_f(reflectance, 0.04));
+}
+
+TEST(Frensel, SchlickAlmostTangentTest){
+    auto shape = glass_sphere();
+    Ray r = Ray(point(0, 0.99, -2), vector(0, 0, 1));
+    Intersection i1(1.8589, &shape);
+    std::vector<Intersection> xs = {i1};
+    Computation comps = prepare_computations(xs[0], r, xs);
+    float reflectance = Schlick(comps);
+    EXPECT_TRUE(cmp_f(reflectance, 0.48873));
+}
+
+TEST(Frensel, ReflectiveAndTransparentMaterialTest){
+    World w = World::get_default_world();
+    
+    std::shared_ptr<Shape> floor = std::make_shared<Plane>();
+    floor->set_transform(translation(0, -1, 0));
+    floor->material.reflective       = 0.5;
+    floor->material.transparency     = 0.5;
+    floor->material.refractive_index = 1.5;
+
+    std::shared_ptr<Shape> ball = std::make_shared<Sphere>();
+    ball->set_transform(translation(0, -3.5, -0.5));
+    ball->material.color = Color(1, 0, 0);
+    ball->material.ambient = 0.5;
+
+    w.shapes.push_back(floor);
+    w.shapes.push_back(ball);
+
+    Ray r = Ray(point(0, 0, -3), vector(0, -std::sqrt(2)/2.0, std::sqrt(2)/2.0));
+    std::vector<Intersection> xs = {Intersection(std::sqrt(2), floor.get())};
+    Computation comps = prepare_computations(xs[0], r, xs);
+    Color c = shade_hit(w, comps, 5);
+    EXPECT_EQ(c, Color(0.93391, 0.69643, 0.69243));
 }

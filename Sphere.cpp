@@ -20,6 +20,7 @@ struct Sphere : public Shape{
 
     std::vector<Intersection> local_intersect(Ray r) override;
     tuple local_normal_at(const tuple& local_point) override;
+    ~Sphere() {}
 };
 
 std::vector<Intersection> Sphere::local_intersect(Ray r){
@@ -42,4 +43,11 @@ std::vector<Intersection> Sphere::local_intersect(Ray r){
 
 tuple Sphere::local_normal_at(const tuple& local_point) {
     return local_point - point(0, 0, 0);
+}
+
+Sphere glass_sphere(){
+    Sphere sp = Sphere();
+    sp.material.transparency = 1.0;
+    sp.material.refractive_index = 1.5;
+    return sp;
 }

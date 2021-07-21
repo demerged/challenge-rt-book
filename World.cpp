@@ -29,7 +29,7 @@ struct World {
 		return w;
 	}
 
-	std::vector<Intersection> intersect_world (const Ray r){
+	std::vector<Intersection> intersect_world (const Ray& r){
 		std::vector<Intersection> xs;
 		for (int i = 0; i < shapes.size(); i++){
 			std::vector<Intersection> tmp =  shapes[i]->intersect(r);
@@ -53,19 +53,79 @@ bool is_shadowed(World& w, tuple p){
 	return (!h.none && h.t < distance);	
 }
 
-Color shade_hit(World& w, const Computation& comps){
+
+Color reflected_color(World& w, const Computation& comps, int remaining); // TODO: make header files...
+Color refracted_color(World& w, const Computation& comps, int remaining);
+float Schlick(const Computation& comps);
+
+Color shade_hit(World& w, const Computation& comps, int remaining){
 	Point_light light;
 	if (w.light_source.has_value())
 		light = *w.light_source;
 	bool in_shadow =  is_shadowed(w, comps.over_point);
-	return lighting(comps.s->material, comps.s, light, comps.over_point, comps.eyev, comps.normalv, in_shadow);
+	Color surface = lighting(comps.s->material, comps.s, light, comps.over_point, comps.eyev, comps.normalv, in_shadow);
+	Color reflected = reflected_color(w, comps, remaining);
+	Color refracted = refracted_color(w, comps, remaining);
+
+	Material* material = &comps.s->material;
+	if (material->reflective > 0 && material->transparency > 0){
+		float reflectance = Schlick(comps);
+		return surface + reflected * reflectance + 
+						 refracted * (1 - reflectance);
+	} 
+	else
+		return surface + reflected + refracted;
 }
 
-Color color_at(World& w, Ray r){
+Color color_at(World& w, Ray& r, int remaining=5){
 	auto xs = w.intersect_world(r);
 	Intersection i = hit(xs);
 	if (i.none)
 		return Color(0, 0, 0);
-	Computation comps = prepare_computations(i, r);
-	return shade_hit(w, comps);
+	Computation comps = prepare_computations(i, r, xs);
+	return shade_hit(w, comps, remaining);
+}
+
+Color reflected_color(World& w, const Computation& comps, int remaining){
+	if (comps.s->material.reflective == 0 || remaining <= 0) {
+		return Color(0, 0, 0);
+	}
+	Ray reflect_ray = Ray(comps.over_point, comps.reflectv);
+	Color color = color_at(w, reflect_ray, remaining-1);
+	return color * comps.s->material.reflective;
+}
+
+Color refracted_color(World& w, const Computation& comps, int remaining){
+	if (comps.s->material.transparency == 0 || remaining <= 0)
+		return Color(0, 0, 0);
+	
+    float n_ratio = comps.n1 / comps.n2;
+    float cos_i = dot(comps.eyev, comps.normalv);
+    float sin2_t = n_ratio*n_ratio * (1.0 - cos_i*cos_i);
+	if (sin2_t > 1)
+		return Color(0, 0, 0);
+
+	float cos_t = std::sqrt(1.0 - sin2_t);
+	tuple direction = comps.normalv * (n_ratio * cos_i - cos_t) -
+						comps.eyev * n_ratio;
+
+	Ray refract_ray = Ray(comps.under_point, direction);
+	Color color = color_at(w, refract_ray, remaining-1) * comps.s->material.transparency;
+
+	return color;
+}
+
+float Schlick(const Computation& comps){
+	float cos = dot(comps.eyev, comps.normalv);
+	if (comps.n1 > comps.n2){
+		float n_ratio = comps.n1 / comps.n2;
+		float sin2_t = n_ratio*n_ratio * (1.0 - cos*cos);
+		if (sin2_t > 1.0) return 1.0;
+
+		float cos_t = std::sqrt(1.0 - sin2_t);
+		cos = cos_t;
+	}
+
+	float r0 = std::pow(((comps.n1 - comps.n2) / (comps.n1 + comps.n2)), 2);
+	return r0 + (1.0 - r0) * std::pow((1 - cos), 5);
 }

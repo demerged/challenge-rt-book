@@ -10,7 +10,7 @@ struct Intersection{
     Shape* s;
     bool none;
     Intersection(float t_, Shape* s_) : t(t_), s(s_) { none = false; };
-    Intersection(bool n) { none = true; }
+    Intersection(bool n) { t = 0.0; s = nullptr; none = true; }
 
     bool operator<(const Intersection& i) const {
         return (t < i.t);
