@@ -61,5 +61,5 @@ int main(){
     // cam.transform = view_transform(point(0, 10, 0), point(0, 0, 0),vector(0, 0, 1));
     //cam.transform = view_transform(point(5, 1, -5), point(-5, 3, 5),vector(0, 1, 0));
     Canvas canvas = render(cam, world);
-    canvas_to_ppm(canvas);
+    canvas_to_ppm(canvas, "out.ppm");
 }

@@ -1,5 +1,8 @@
 #include <cmath>
 #include <thread>
+#include "matrix.h"
+#include "Ray.cpp"
+#include "World.cpp"
 
 #define MULTI_THREAD 1
 

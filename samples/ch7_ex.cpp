@@ -60,5 +60,5 @@ int main(){
     Camera cam = Camera(800, 600, PI/3.0f);
     cam.transform = view_transform(point(0, 1.5, -5), point(0, 1, 0),vector(0, 1, 0));
     Canvas canvas = render(cam, world);
-    canvas_to_ppm(canvas);
+    canvas_to_ppm(canvas, "out.ppm");
 }
