@@ -16,8 +16,27 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(
-    app
-        basic_tests.cpp)
+  app 
+  Camera.cpp
+  Checker_pattern.cpp
+  Computation.cpp
+  Cube.cpp
+  Experimental_pattern.cpp
+  Gradient_pattern.cpp
+  Intersection.cpp
+  Light.cpp
+  Material.cpp
+  Matrix.cpp
+  Pattern.cpp
+  Plane.cpp
+  Ray.cpp
+  Ring_pattern.cpp
+  rt.cpp
+  Shape.cpp
+  Sphere.cpp
+  Stripe_pattern.cpp
+  World.cpp
+  basic_tests.cpp)
 target_link_libraries(
     app
     gtest_main

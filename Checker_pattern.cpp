@@ -1,14 +1,9 @@
-#include "Pattern.cpp"
+#include "Checker_pattern.h"
 
-
-struct Checker_pattern : public Pattern {
-    Checker_pattern(Color a_, Color b_) {
-        a = a_;
-        b = b_;
-    }
-
-    Color pattern_at(tuple point) override;
-};
+Checker_pattern::Checker_pattern(Color a_, Color b_) {
+    a = a_;
+    b = b_;
+}
 
 Color Checker_pattern::pattern_at(tuple point){
     int point_sum = std::floor(point.x) + std::floor(point.y) + std::floor(point.z);

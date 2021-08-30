@@ -1,21 +1,6 @@
-#pragma once
-#include <vector>
-#include "matrix.h"
-#include "Material.h"
-#include "Intersection.cpp"
-#include "Ray.cpp"
+#include "Shape.h"
 
-struct Shape {
-    Matrix transform = Matrix::get_identity();
-    Material material;
-    Matrix inversed_transform = Matrix::get_identity();
-    void set_transform(const Matrix& m);
-    std::vector<Intersection> intersect(Ray r);
-    tuple normal_at(const tuple& world_point);
-    virtual std::vector<Intersection> local_intersect(Ray r) = 0;
-    virtual tuple local_normal_at(const tuple& local_point) = 0;
-    virtual ~Shape() = default;
-};
+Shape::Shape() : transform(Matrix::get_identity()), inversed_transform(Matrix::get_identity()){}
 
 void Shape::set_transform(const Matrix& m) {
     transform = m;
@@ -36,15 +21,7 @@ tuple Shape::normal_at(const tuple& world_point) {
     return normalize(world_normal);
 }
 
-
-
-struct TestShape : public Shape {
-    std::vector<Intersection> local_intersect(Ray r) override;
-    tuple local_normal_at(const tuple& local_point) override;
-public:
-    Ray saved_ray = Ray(point(0, 0, 0), point(0, 0, 0));
-};
-
+TestShape::TestShape() : saved_ray(Ray(point(0, 0, 0), point(0, 0, 0))){}
 std::vector<Intersection> TestShape::local_intersect(Ray r) {
     saved_ray = r;
     return {};

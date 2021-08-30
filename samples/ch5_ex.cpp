@@ -1,5 +1,5 @@
-#include "../Ray.cpp"
-#include "../Sphere.cpp"
+#include "../Ray.h"
+#include "../Sphere.h"
 
 int main() {
 	float wall_z = 10.f;
@@ -28,7 +28,7 @@ int main() {
 				write_pixel(c, x, y, red);
 		}
 	}
-	canvas_to_ppm(c);
+	canvas_to_ppm(c, "out.ppm");
 
 
 }

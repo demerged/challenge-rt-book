@@ -1,44 +1,31 @@
-#pragma once
-#include <memory>
-#include "rt.h"
-#include "Light.h"
-#include "Ray.cpp"
-#include <algorithm>
-#include <optional>
-#include "Shape.cpp"
-#include "Sphere.cpp"
-#include "Computation.cpp"
+#include "World.h"
 
-struct World {
-	std::optional<Point_light> light_source;
-	std::vector<std::shared_ptr<Shape>> shapes;
-	World(){}
+World::World(){}
 
-	static World get_default_world(){
-		World w = World();
-		w.light_source = Point_light(point(-10, 10, -10), Color(1, 1, 1));
-		std::shared_ptr<Shape> s1 = std::make_shared<Sphere>(); std::shared_ptr<Shape> s2 = std::make_shared<Sphere>();
+World World::get_default_world(){
+    World w = World();
+    w.light_source = Point_light(point(-10, 10, -10), Color(1, 1, 1));
+    std::shared_ptr<Shape> s1 = std::make_shared<Sphere>(); std::shared_ptr<Shape> s2 = std::make_shared<Sphere>();
 
-		s1->material = Material();
-		s1->material.color    = Color(0.8, 1.0, 0.6);
-		s1->material.diffuse  = 0.7;
-		s1->material.specular = 0.2;
-		s2->set_transform(scaling(0.5, 0.5, 0.5));
-		w.shapes.push_back(s1);
-		w.shapes.push_back(s2);
-		return w;
-	}
+    s1->material = Material();
+    s1->material.color    = Color(0.8, 1.0, 0.6);
+    s1->material.diffuse  = 0.7;
+    s1->material.specular = 0.2;
+    s2->set_transform(scaling(0.5, 0.5, 0.5));
+    w.shapes.push_back(s1);
+    w.shapes.push_back(s2);
+    return w;
+}
 
-	std::vector<Intersection> intersect_world (const Ray& r){
-		std::vector<Intersection> xs;
-		for (int i = 0; i < shapes.size(); i++){
-			std::vector<Intersection> tmp =  shapes[i]->intersect(r);
-			xs.insert(xs.begin(),  tmp.begin(), tmp.end());
-		}
-		std::sort(xs.begin(), xs.end());
-		return xs;
-	}
-};
+std::vector<Intersection> World::intersect_world (const Ray& r){
+    std::vector<Intersection> xs;
+    for (int i = 0; i < shapes.size(); i++){
+        std::vector<Intersection> tmp =  shapes[i]->intersect(r);
+        xs.insert(xs.begin(),  tmp.begin(), tmp.end());
+    }
+    std::sort(xs.begin(), xs.end());
+    return xs;
+}
 
 bool is_shadowed(World& w, tuple p){
 	Point_light plight;
@@ -52,11 +39,6 @@ bool is_shadowed(World& w, tuple p){
 	Intersection h = hit(xs);
 	return (!h.none && h.t < distance);	
 }
-
-
-Color reflected_color(World& w, const Computation& comps, int remaining); // TODO: make header files...
-Color refracted_color(World& w, const Computation& comps, int remaining);
-float Schlick(const Computation& comps);
 
 Color shade_hit(World& w, const Computation& comps, int remaining){
 	Point_light light;
@@ -77,7 +59,7 @@ Color shade_hit(World& w, const Computation& comps, int remaining){
 		return surface + reflected + refracted;
 }
 
-Color color_at(World& w, Ray& r, int remaining=5){
+Color color_at(World& w, Ray& r, int remaining){
 	auto xs = w.intersect_world(r);
 	Intersection i = hit(xs);
 	if (i.none)

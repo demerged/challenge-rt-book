@@ -1,17 +1,10 @@
-#include "Pattern.cpp"
-#include <stdlib.h>
-#include <time.h> 
+#include "Experimental_pattern.h"
 
-
-struct Experimental_pattern : public Pattern {
-    Experimental_pattern(Color a_, Color b_) {
-        a = a_;
-        b = b_;
-        srand (time(NULL));
-    }
-
-    Color pattern_at(tuple point) override;
-};
+Experimental_pattern::Experimental_pattern(Color a_, Color b_) {
+    a = a_;
+    b = b_;
+    srand (time(NULL));
+}
 
 Color Experimental_pattern::pattern_at(tuple point){
     // float r,g,b;

@@ -1,11 +1,8 @@
 #pragma once
 #include "Shape.h"
-#include <cmath>
 
-struct tpair;
-struct Cube : Shape{
+struct Plane : public Shape {
     std::vector<Intersection> local_intersect(Ray r) override;
     tuple local_normal_at(const tuple& local_point) override;
+    ~Plane();
 };
-
-tpair check_axis(float origin, float direction);

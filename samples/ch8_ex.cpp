@@ -1,11 +1,11 @@
 #include "../rt.h"
-#include "../matrix.h"
-#include "../Ray.cpp"
-#include "../World.cpp"
+#include "../Matrix.h"
+#include "../Ray.h"
+#include "../World.h"
 #include "../Light.h"
-#include "../Camera.cpp"
-#include "../Sphere.cpp"
-#include "../Plane.cpp"
+#include "../Camera.h"
+#include "../Sphere.h"
+#include "../Plane.h"
 
 
 int main(){

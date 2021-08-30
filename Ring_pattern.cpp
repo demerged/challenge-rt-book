@@ -1,13 +1,9 @@
-#include "Pattern.cpp"
-#include <cmath>
-struct Ring_pattern : public Pattern {
-    Ring_pattern(Color a_, Color b_) {
-        a = a_;
-        b = b_;
-    }
+#include "Ring_pattern.h"
 
-    Color pattern_at(tuple p) override;
-};
+Ring_pattern::Ring_pattern(Color a_, Color b_) {
+    a = a_;
+    b = b_;
+}
 
 Color Ring_pattern::pattern_at(tuple p) {
     float const x2 = p.x * p.x;

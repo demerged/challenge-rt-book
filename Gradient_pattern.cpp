@@ -1,12 +1,10 @@
-#include "Pattern.cpp"
+#include "Gradient_pattern.h"
 
-struct Gradient_pattern : public Pattern {
-    Gradient_pattern(Color a_, Color b_) {
-        a = a_;
-        b = b_;
-    }
-    Color pattern_at(tuple pattern_point) override;
-};
+
+Gradient_pattern::Gradient_pattern(Color a_, Color b_) {
+    a = a_;
+    b = b_;
+}
 
 Color Gradient_pattern::pattern_at(tuple pattern_point) {
     Color distance = Gradient_pattern::b - Gradient_pattern::a;

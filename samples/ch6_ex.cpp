@@ -1,5 +1,10 @@
-#include "../Ray.cpp"
+#include "../rt.h"
+#include "../Matrix.h"
+#include "../Ray.h"
+#include "../World.h"
 #include "../Light.h"
+#include "../Camera.h"
+#include "../Sphere.h"
 
 int main() {
 	float wall_z = 10.f;
@@ -25,17 +30,17 @@ int main() {
 
 			tuple direction = point(world_x, world_y, wall_z) - origin;
 			Ray ray = Ray(origin, normalize(direction));
-			auto xs = intersect(s, ray);
+			auto xs = s.intersect(ray);
 			Intersection is = hit(xs);
 
 			tuple p = ray.position(is.t);
-			tuple normal = normal_at(is.s, p);
+			tuple normal = is.s->normal_at(p);
 			tuple eye = -ray.direction;
-			Color color = lighting(is.s.material, light, p, eye, normal);
+			Color color = lighting(is.s->material, is.s, light, p, eye, normal, false);
 
 			if (!is.none)
 				write_pixel(c, x, y, color);
 		}
 	}
-	canvas_to_ppm(c);
+	canvas_to_ppm(c, "out.ppm");
 }

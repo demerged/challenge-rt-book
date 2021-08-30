@@ -1,24 +1,8 @@
-#pragma once
-#include <algorithm>
-#include "rt.h"
-#include "Ray.cpp"
-#include "Sphere.cpp"
+#include "Computation.h"
 
-struct Computation{
-    float t;
-    Shape* s;
-    tuple p;
-    tuple eyev;
-    tuple normalv;
-    tuple over_point;
-    tuple under_point;
-    tuple reflectv;
-    bool inside;
-    float n1, n2;
-    Computation(){}
-};
+Computation::Computation(){}
 
-Computation prepare_computations(const Intersection& i, Ray& r, const std::vector<Intersection>& xs = {}){
+Computation prepare_computations(const Intersection& i, Ray& r, const std::vector<Intersection>& xs){
     Computation comps = Computation();
     comps.t = i.t;
     comps.s = i.s;

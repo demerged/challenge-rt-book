@@ -1,26 +1,16 @@
-#pragma once
-#include <vector>
-#include <algorithm>
-#include "rt.h"
-struct Shape;
-struct Sphere;
+#include "Intersection.h"
 
-struct Intersection{
-    float t;
-    Shape* s;
-    bool none;
-    Intersection(float t_, Shape* s_) : t(t_), s(s_) { none = false; };
-    Intersection(bool n) { t = 0.0; s = nullptr; none = true; }
 
-    bool operator<(const Intersection& i) const {
-        return (t < i.t);
-    }
+Intersection::Intersection(float t_, Shape* s_) : t(t_), s(s_) { none = false; };
+Intersection::Intersection(bool n) { t = 0.0; s = nullptr; none = true; }
 
-    bool operator==(const Intersection& i) const{
-        return (cmp_f(t, i.t)) && (s == i.s);
-    }
-};
+bool Intersection::operator<(const Intersection& i) const {
+    return (t < i.t);
+}
 
+bool Intersection::operator==(const Intersection& i) const{
+    return (cmp_f(t, i.t)) && (s == i.s);
+}
 
 std::vector<Intersection> intersections(Intersection i1, Intersection i2){
     std::vector<Intersection> xs;

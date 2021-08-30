@@ -1,18 +1,10 @@
-#pragma once
-#include "matrix.h"
-#include <algorithm>
-#include "Material.h"
+#include "Ray.h"
 
-struct Ray{
-    tuple origin;
-    tuple direction;
-    Ray(const tuple &o, const tuple &d): origin(o), direction(d) {};
+Ray::Ray(const tuple &o, const tuple &d): origin(o), direction(d) {};
 
-    tuple position(float t){
-        return origin + direction * t;
-    }
-    Ray transform(Matrix& m);
-};
+tuple Ray::position(float t){
+    return origin + direction * t;
+}
 
 Ray Ray::transform(Matrix& m) {
     Ray result(m * origin, m * direction);

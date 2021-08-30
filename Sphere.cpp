@@ -1,27 +1,14 @@
-#pragma once
-#include "rt.h"
-#include "Material.h"
-#include "matrix.h"
-#include "Intersection.cpp"
-#include "Ray.cpp"
-#include "Shape.cpp"
+#include "Sphere.h"
 
-
-struct Sphere : public Shape{
-    tuple origin;
-    float radius;
-    Sphere(){
-        origin = point(0, 0, 0);
-        radius = 1.0f;
-    };
-    bool operator==(const Sphere  &s) const{
-        return origin == s.origin && cmp_f(radius, s.radius);
-    }
-
-    std::vector<Intersection> local_intersect(Ray r) override;
-    tuple local_normal_at(const tuple& local_point) override;
-    ~Sphere() {}
+Sphere::Sphere(){
+    origin = point(0, 0, 0);
+    radius = 1.0f;
 };
+Sphere::~Sphere(){}
+
+bool Sphere::operator==(const Sphere  &s) const{
+    return origin == s.origin && cmp_f(radius, s.radius);
+}
 
 std::vector<Intersection> Sphere::local_intersect(Ray r){
     tuple sphere_to_ray = r.origin - point(0, 0, 0);
