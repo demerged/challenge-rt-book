@@ -75,6 +75,10 @@ CMakeUserPresets.json
 #vscode folder
 .vscode/
 
+#ccls (coc.nvim) plugin cache folder
+.ccls/
+.ccls-cache/
+
 #build folder
 build/
 samples/ch7_ex

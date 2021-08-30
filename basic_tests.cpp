@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
+#include <vector>
 #include "rt.h"
 #include "matrix.h"
 #include "Ray.cpp"
@@ -17,6 +18,7 @@
 #include "Gradient_pattern.cpp"
 #include "Ring_pattern.cpp"
 #include "Checker_pattern.cpp"
+#include "Cube.cpp"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -1412,3 +1414,81 @@ TEST(Frensel, ReflectiveAndTransparentMaterialTest){
     Color c = shade_hit(w, comps, 5);
     EXPECT_EQ(c, Color(0.93391, 0.69643, 0.69243));
 }
+
+TEST(Cubes, RayIntersectingACubeTest){
+  struct CubeTest {
+    tuple origin, direction;
+    int t1, t2;
+  };
+  std::vector<CubeTest> data = { {point(  5, 0.5, 0), vector(-1, 0, 0), 4, 6},
+                                 {point( -5, 0.5, 0), vector( 1, 0, 0), 4, 6},
+                                 {point(0.5,   5, 0), vector( 0,-1, 0), 4, 6}, 
+                                 {point(0.5,  -5, 0), vector( 0, 1, 0), 4, 6},
+                                 {point(0.5,   0, 5), vector( 0, 0,-1), 4, 6},
+                                 {point(0.5,   0,-5), vector( 0, 0, 1), 4, 6},
+                                 {point(  0, 0.5, 0), vector( 0, 0, 1),-1, 1}
+                               };
+  Cube c;
+  for (size_t i = 0; i < data.size(); ++i) {
+    Ray r = Ray(data[i].origin, data[i].direction);
+    auto xs = c.local_intersect(r);
+    EXPECT_EQ(xs.size(), 2);
+    EXPECT_EQ(xs[0].t, data[i].t1);
+    EXPECT_EQ(xs[1].t, data[i].t2);
+  }
+}
+
+TEST(Cubes, RayMissesCubeTest){
+  std::vector<tuple> points = {
+    point(-2, 0, 0),
+    point( 0,-2, 0),
+    point( 0, 0,-2),
+    point( 2, 0, 2),
+    point( 0, 2, 2),
+    point( 2, 2, 0) 
+  };
+  std::vector<tuple> vectors = {
+    vector( 0.2673, 0.5345, 0.8018),
+    vector( 0.8018, 0.2673, 0.5345),
+    vector( 0.5345, 0.8018, 0.2673),
+    vector( 0,      0,     -1),
+    vector( 0,     -1,      0),
+    vector(-1,      0,      0)
+  };
+  Cube c;
+  for (int i = 0; i < points.size(); ++i) {
+    Ray r(points[i], vectors[i]);
+    auto xs = c.local_intersect(r);
+    EXPECT_EQ(xs.size(), 0);
+  }
+}
+
+TEST(Cubes, NormalOnACubeTest){
+  std::vector<tuple> points = {
+    point( 1, 0.5,-0.8),
+    point(-1,-0.2, 0.9),
+    point(-0.4, 1,-0.1),
+    point( 0.3,-1,-0.7),
+    point(-0.6,0.3,1),
+    point( 0.4, 0.4,-1),
+    point( 1, 1, 1),
+    point( -1, -1, -1)
+  };
+  std::vector<tuple> normals = {
+    vector( 1,      0,    0),
+    vector( -1,      0,     0),
+    vector( 0,      1,     0),
+    vector( 0,      -1,     0),
+    vector( 0,     0,      1),
+    vector(0,      0,      -1),
+    vector(1,      0,      0),
+    vector(-1,      0,      0)
+  };
+  Cube c;
+  for (int i = 0; i < points.size(); ++i) {
+    tuple p = points[i];
+    tuple normal = c.local_normal_at(p);
+    EXPECT_EQ(normal, normals[i]);
+  }
+}
+
