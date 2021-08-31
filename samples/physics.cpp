@@ -1,4 +1,4 @@
-#include "../rt.h"
+#include "rt.h"
 #include <sstream>
 
 struct Projectile {
@@ -30,5 +30,5 @@ int main(){
         write_pixel(c, roundf(p.pos.x), roundf(c.height - p.pos.y), Color(1, 0, 0));
     }
 
-    canvas_to_ppm(c);
+    canvas_to_ppm(c, "out.ppm");
 }

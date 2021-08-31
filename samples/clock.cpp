@@ -1,4 +1,4 @@
-#include "../matrix.h"
+#include "Matrix.h"
 
 int main(){
     Canvas c(400, 400);
@@ -20,7 +20,7 @@ int main(){
         write_pixel(c, (uint32_t)actualHour.x, c.height - (uint32_t)actualHour.y, white);
     }
 
-    canvas_to_ppm(c);
+    canvas_to_ppm(c, "out.ppm");
 
     return 0;
 }

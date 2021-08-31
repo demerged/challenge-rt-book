@@ -1,5 +1,5 @@
-#include "../Ray.h"
-#include "../Sphere.h"
+#include "Ray.h"
+#include "Sphere.h"
 
 int main() {
 	float wall_z = 10.f;

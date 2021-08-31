@@ -3,6 +3,10 @@ project(sample)
 
 # GoogleTest requires at least C++11
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -lpthread")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -ggdb")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_SKIP_INSTALL_RULES True)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -15,32 +19,17 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+file(GLOB_RECURSE SRC_FILES src/*.cpp)
+add_subdirectory(samples)
 add_executable(
   app 
-  Camera.cpp
-  Checker_pattern.cpp
-  Computation.cpp
-  Cube.cpp
-  Experimental_pattern.cpp
-  Gradient_pattern.cpp
-  Intersection.cpp
-  Light.cpp
-  Material.cpp
-  Matrix.cpp
-  Pattern.cpp
-  Plane.cpp
-  Ray.cpp
-  Ring_pattern.cpp
-  rt.cpp
-  Shape.cpp
-  Sphere.cpp
-  Stripe_pattern.cpp
-  World.cpp
-  basic_tests.cpp)
+  ${SRC_FILES}
+  tests.cpp)
 target_link_libraries(
     app
     gtest_main
 )
+target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/include)
 
 include(GoogleTest)
 gtest_discover_tests(app)

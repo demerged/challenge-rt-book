@@ -1,10 +1,10 @@
-#include "../rt.h"
-#include "../Matrix.h"
-#include "../Ray.h"
-#include "../World.h"
-#include "../Light.h"
-#include "../Camera.h"
-#include "../Sphere.h"
+#include "rt.h"
+#include "Matrix.h"
+#include "Ray.h"
+#include "World.h"
+#include "Light.h"
+#include "Camera.h"
+#include "Sphere.h"
 
 int main() {
 	float wall_z = 10.f;

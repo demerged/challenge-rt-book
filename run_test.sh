@@ -9,7 +9,7 @@ else
     printf "${RED}Build Failed${NC}\n"
     exit 1
 fi
-cmake --build build
+cmake --build build -j18
 if [ $? -eq 0 ]; then
     echo OK
 else

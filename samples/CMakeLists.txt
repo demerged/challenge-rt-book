@@ -1,0 +1,16 @@
+project(samples)
+
+
+file(GLOB_RECURSE SRC_FILES ../src/*.cpp)
+get_filename_component(DIR_ONE_ABOVE ../ ABSOLUTE)
+add_executable(ball_between ${SRC_FILES} ball_between.cpp)
+add_executable(clock ${SRC_FILES} clock.cpp)
+add_executable(physics ${SRC_FILES} physics.cpp)
+add_executable(ch5_ex ${SRC_FILES} ch5_ex.cpp)
+add_executable(ch6_ex ${SRC_FILES} ch6_ex.cpp)
+add_executable(ch7_ex ${SRC_FILES} ch7_ex.cpp)
+add_executable(ch8_ex ${SRC_FILES} ch8_ex.cpp)
+add_executable(ch9_ex ${SRC_FILES} ch9_ex.cpp)
+add_executable(ch10_ex ${SRC_FILES} ch10_ex.cpp)
+add_executable(ch11_ex ${SRC_FILES} ch11_ex.cpp)
+include_directories(${DIR_ONE_ABOVE}/src/include)
