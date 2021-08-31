@@ -45,7 +45,7 @@ struct Canvas{
     int height;
     std::vector<std::vector<Color>> canvas;
     //Color** canvas = new Color*[width];
-    Canvas(int w, int h); 
+    Canvas(int w, int h);
 };
 
 tuple color(float r, float g, float b);

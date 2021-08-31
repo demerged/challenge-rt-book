@@ -37,7 +37,7 @@ bool is_shadowed(World& w, tuple p){
 	Ray r = Ray(p, direction);
 	auto xs = w.intersect_world(r);
 	Intersection h = hit(xs);
-	return (!h.none && h.t < distance);	
+	return (!h.none && h.t < distance);
 }
 
 Color shade_hit(World& w, const Computation& comps, int remaining){
@@ -52,9 +52,9 @@ Color shade_hit(World& w, const Computation& comps, int remaining){
 	Material* material = &comps.s->material;
 	if (material->reflective > 0 && material->transparency > 0){
 		float reflectance = Schlick(comps);
-		return surface + reflected * reflectance + 
-						 refracted * (1 - reflectance);
-	} 
+		return surface + reflected * reflectance +
+						refracted * (1 - reflectance);
+	}
 	else
 		return surface + reflected + refracted;
 }
@@ -80,10 +80,10 @@ Color reflected_color(World& w, const Computation& comps, int remaining){
 Color refracted_color(World& w, const Computation& comps, int remaining){
 	if (comps.s->material.transparency == 0 || remaining <= 0)
 		return Color(0, 0, 0);
-	
-    float n_ratio = comps.n1 / comps.n2;
-    float cos_i = dot(comps.eyev, comps.normalv);
-    float sin2_t = n_ratio*n_ratio * (1.0 - cos_i*cos_i);
+
+	float n_ratio = comps.n1 / comps.n2;
+	float cos_i = dot(comps.eyev, comps.normalv);
+	float sin2_t = n_ratio*n_ratio * (1.0 - cos_i*cos_i);
 	if (sin2_t > 1)
 		return Color(0, 0, 0);
 

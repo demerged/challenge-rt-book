@@ -75,7 +75,7 @@ Canvas render(Camera& cam, World& world){
     for (auto &thread : threads) {
         thread.join();
     }
-    std::cout << "\n"; 
+    std::cout << "\n";
     return image;
 #else
     std::cout << "Rendering with 1 thread" << std::endl;

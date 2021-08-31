@@ -22,7 +22,7 @@ struct World {
 bool is_shadowed(World& w, tuple p);
 
 
-Color reflected_color(World& w, const Computation& comps, int remaining); 
+Color reflected_color(World& w, const Computation& comps, int remaining);
 
 float Schlick(const Computation& comps);
 

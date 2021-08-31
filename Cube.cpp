@@ -5,9 +5,9 @@ struct tpair {
 };
 
 std::vector<Intersection> Cube::local_intersect(Ray r) {
-  tpair x = check_axis(r.origin.x, r.direction.x); 
-  tpair y = check_axis(r.origin.y, r.direction.y); 
-  tpair z = check_axis(r.origin.z, r.direction.z); 
+  tpair x = check_axis(r.origin.x, r.direction.x);
+  tpair y = check_axis(r.origin.y, r.direction.y);
+  tpair z = check_axis(r.origin.z, r.direction.z);
 
   float tmin = std::max(x.tmin, std::max(y.tmin, z.tmin));
   float tmax = std::min(x.tmax, std::min(y.tmax, z.tmax));
@@ -24,7 +24,7 @@ tuple Cube::local_normal_at(const tuple& local_point) {
   } else if (maxc == std::abs(local_point.y)) {
     return vector(0, local_point.y, 0);
   }
-  
+
   return vector(0, 0, local_point.z);
 }
 

@@ -14,9 +14,9 @@ struct Matrix {
 
     tuple operator*(const tuple &other);
 
-    bool operator==(const Matrix &other) const; 
+    bool operator==(const Matrix &other) const;
     bool operator!=(const Matrix &other) const;
-    
+
     static Matrix get_identity();
 
     friend std::ostream& operator<<(std::ostream& os, const Matrix& mat);
@@ -36,7 +36,7 @@ bool is_invertible(const Matrix &mat);
 
 
 Matrix inverse(const Matrix &a);
- 
+
 
 
 Matrix translation(float x, float y, float z);

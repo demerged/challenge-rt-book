@@ -13,7 +13,7 @@ Computation prepare_computations(const Intersection& i, Ray& r, const std::vecto
     if (dot(comps.normalv, comps.eyev) < 0){
         comps.inside = true;
         comps.normalv = -comps.normalv;
-    } 
+    }
     else {
         comps.inside = false;
     }
@@ -48,7 +48,6 @@ Computation prepare_computations(const Intersection& i, Ray& r, const std::vecto
                 break;
             }
         }
-        
     }
 
     return comps;

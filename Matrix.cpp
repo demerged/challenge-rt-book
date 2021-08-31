@@ -124,7 +124,7 @@ Matrix inverse(const Matrix &a){
     if (!is_invertible(a))
         throw std::runtime_error("Matrix is non invertible");
     Matrix mat2 = Matrix(a.m_size);
-    
+
     auto s0 = a.m[0][0] * a.m[1][1] - a.m[1][0] * a.m[0][1];
     auto s1 = a.m[0][0] * a.m[1][2] - a.m[1][0] * a.m[0][2];
     auto s2 = a.m[0][0] * a.m[1][3] - a.m[1][0] * a.m[0][3];
@@ -166,7 +166,7 @@ Matrix inverse(const Matrix &a){
 
     return b;
 }
- 
+
 // inverse matrix function from the book
 //-----------------------------------------------------------------------------
 // Matrix inverse(const Matrix &mat){

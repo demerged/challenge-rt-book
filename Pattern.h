@@ -8,9 +8,9 @@ struct Pattern {
     Pattern();
     Color a;
     Color b;
-    Matrix transform; 
+    Matrix transform;
     Matrix inversed_transform;
-    
+
     void set_transform(const Matrix& m);
     virtual Color pattern_at(tuple pattern_point) = 0;
 };
