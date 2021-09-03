@@ -1,7 +1,7 @@
 #include "rt.h"
 
 bool cmp_f(float a, float b) {
-    return (abs(a - b) < EPSILON);
+    return (std::fabs(a - b) < EPSILON);
 }
 
 tuple::tuple() {

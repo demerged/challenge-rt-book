@@ -69,7 +69,7 @@ Color color_at(World& w, Ray& r, int remaining){
 }
 
 Color reflected_color(World& w, const Computation& comps, int remaining){
-    if (comps.s->material.reflective == 0 || remaining <= 0) {
+    if (cmp_f(comps.s->material.reflective, 0) || remaining < 0 || cmp_f(remaining, 0)) {
         return Color(0, 0, 0);
     }
     Ray reflect_ray = Ray(comps.over_point, comps.reflectv);
@@ -78,7 +78,7 @@ Color reflected_color(World& w, const Computation& comps, int remaining){
 }
 
 Color refracted_color(World& w, const Computation& comps, int remaining){
-    if (comps.s->material.transparency == 0 || remaining <= 0)
+    if (cmp_f(comps.s->material.transparency, 0) || remaining < 0 || cmp_f(remaining, 0))
         return Color(0, 0, 0);
 
     float n_ratio = comps.n1 / comps.n2;

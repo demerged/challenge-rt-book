@@ -5,8 +5,8 @@
 #include <fstream>
 #include <sstream>
 
-#define PI 3.14159
-#define EPSILON 0.001
+constexpr auto PI  = 3.14159f;
+constexpr auto EPSILON = 0.0001f;
 
 bool cmp_f(float a, float b);
 

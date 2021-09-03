@@ -32,7 +32,7 @@ tpair check_axis(float origin, float direction) {
     float tmin_numerator = (-1 - origin);
     float tmax_numerator = (1 - origin);
     float tmin, tmax;
-    if (std::abs(direction) >= EPSILON) {
+    if (std::fabs(direction) >= EPSILON) {
         tmin = tmin_numerator / direction;
         tmax = tmax_numerator / direction;
     } else {

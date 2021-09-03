@@ -3,7 +3,7 @@
 Plane::~Plane(){}
 
 std::vector<Intersection> Plane::local_intersect(Ray r) {
-    if (abs(r.direction.y) < EPSILON) return {};
+    if (std::fabs(r.direction.y) < EPSILON) return {};
     float t = -r.origin.y / r.direction.y;
     return {Intersection(t, this)};
 }
