@@ -19,6 +19,7 @@
 #include "Ring_pattern.h"
 #include "Checker_pattern.h"
 #include "Cube.h"
+#include "Cylinder.h"
 
 TEST(AppTest, PointTest){
     EXPECT_EQ(tuple(4, -4, -3, 1), point(4, -4, -3));
@@ -1330,8 +1331,7 @@ TEST(Refraction, RefractedColorRefractedRayTest){
     auto xs = intersections(i1, i2, i3, i4);
     Computation comps = prepare_computations(xs[2], r, xs);
     Color c = refracted_color(w, comps, 5);
-    // low precision? should be color(0, 0.99888, 0.04725)
-    EXPECT_EQ(c, Color(0, 0.998, 0.047));
+    EXPECT_EQ(c, Color(0, 0.99888, 0.04725));
 }
 
 TEST(Refraction, RefractedShadeHitTest){
@@ -1355,7 +1355,6 @@ TEST(Refraction, RefractedShadeHitTest){
     std::vector<Intersection> xs = {i1};
     Computation comps = prepare_computations(xs[0], r, xs);
     Color c = shade_hit(w, comps, 5);
-    // low precision? should be color(0, 0.99888, 0.04725)
     EXPECT_EQ(c, Color(0.93642, 0.68642, 0.68642));
 }
 
@@ -1420,14 +1419,16 @@ TEST(Cubes, RayIntersectingACubeTest){
     tuple origin, direction;
     int t1, t2;
   };
-  std::vector<CubeTest> data = { {point(  5, 0.5, 0), vector(-1, 0, 0), 4, 6},
-                                 {point( -5, 0.5, 0), vector( 1, 0, 0), 4, 6},
-                                 {point(0.5,   5, 0), vector( 0,-1, 0), 4, 6}, 
-                                 {point(0.5,  -5, 0), vector( 0, 1, 0), 4, 6},
-                                 {point(0.5,   0, 5), vector( 0, 0,-1), 4, 6},
-                                 {point(0.5,   0,-5), vector( 0, 0, 1), 4, 6},
-                                 {point(  0, 0.5, 0), vector( 0, 0, 1),-1, 1}
-                               };
+  std::vector<CubeTest> data = 
+  { 
+    {point(  5, 0.5, 0), vector(-1, 0, 0), 4, 6},
+    {point( -5, 0.5, 0), vector( 1, 0, 0), 4, 6},
+    {point(0.5,   5, 0), vector( 0,-1, 0), 4, 6}, 
+    {point(0.5,  -5, 0), vector( 0, 1, 0), 4, 6},
+    {point(0.5,   0, 5), vector( 0, 0,-1), 4, 6},
+    {point(0.5,   0,-5), vector( 0, 0, 1), 4, 6},
+    {point(  0, 0.5, 0), vector( 0, 0, 1),-1, 1}
+  };
   Cube c;
   for (size_t i = 0; i < data.size(); ++i) {
     Ray r = Ray(data[i].origin, data[i].direction);
@@ -1492,3 +1493,205 @@ TEST(Cubes, NormalOnACubeTest){
   }
 }
 
+TEST(Cylinders, RayMissCylinderTest){
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(0, 1, 0));
+        Ray r(point(1, 0, 0), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(0, 1, 0));
+        Ray r(point(0, 0, 0), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(1, 1, 1));
+        Ray r(point(0, 0, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+}
+
+TEST(Cylinders, RayHitCylinderTest){
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(1, 0, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+        EXPECT_EQ(xs[0].t, 5);
+        EXPECT_EQ(xs[1].t, 5);
+    }
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 0, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+        EXPECT_EQ(xs[0].t, 4);
+        EXPECT_EQ(xs[1].t, 6);
+    }
+    {
+        Cylinder cyl;
+        tuple direction = normalize(vector(0.1, 1, 1));
+        Ray r(point(0.5, 0, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+        EXPECT_TRUE(cmp_f(xs[0].t, 6.80798));
+        EXPECT_TRUE(cmp_f(xs[1].t, 7.08872));
+    }
+}
+
+TEST(Cylinders, NormalVectorOnCylinderTest){
+    {
+        Cylinder cyl;
+        tuple n = cyl.local_normal_at(point(1, 0, 0));
+        EXPECT_EQ(n, vector(1, 0, 0));
+    }
+    {
+        Cylinder cyl;
+        tuple n = cyl.local_normal_at(point(0, 5, -1));
+        EXPECT_EQ(n, vector(0, 0, -1));
+    }
+    {
+        Cylinder cyl;
+        tuple n = cyl.local_normal_at(point(0, -2, 1));
+        EXPECT_EQ(n, vector(0, 0, 1));
+    }
+    {
+        Cylinder cyl;
+        tuple n = cyl.local_normal_at(point(-1, 1, 0));
+        EXPECT_EQ(n, vector(-1, 0, 0));
+    }
+}
+
+TEST(Cylinders, DefaultMinMaxCylinderTest){
+    Cylinder cyl;
+    EXPECT_EQ(cyl.minimum, -INFINITY);
+    EXPECT_EQ(cyl.maximum, INFINITY);
+}
+
+TEST(Cylinders, IntersectingConstrainedCylinderTest){
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0.1, 1, 0));
+        Ray r(point(0, 1.5, 0), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 3, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 0, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 2, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 1, -5), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 0);
+    }
+    {
+        Cylinder cyl;
+        cyl.minimum = 1;
+        cyl.maximum = 2;
+        tuple direction = normalize(vector(0, 0, 1));
+        Ray r(point(0, 1.5, -2), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+}
+
+TEST(Cylinders, ClosedValueForCylinderTest){
+    Cylinder cyl;
+    EXPECT_EQ(cyl.closed, false);
+}
+
+TEST(Cylinders, IntersectingCapsCylinderTest){
+    Cylinder cyl;
+    cyl.minimum = 1;
+    cyl.maximum = 2;
+    cyl.closed = true;
+    {
+        tuple direction = normalize(vector(0, -1, 0));    
+        Ray r(point(0, 3, 0), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+    {
+        tuple direction = normalize(vector(0, -1, 2));    
+        Ray r(point(0, 3, -2), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+    {
+        tuple direction = normalize(vector(0, -1, 1));    
+        Ray r(point(0, 4, -2), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+    {
+        tuple direction = normalize(vector(0, 1, 2));    
+        Ray r(point(0, 0, -2), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+    {
+        tuple direction = normalize(vector(0, 1, 1));    
+        Ray r(point(0, -1, -2), direction);
+        auto xs = cyl.local_intersect(r);
+        EXPECT_EQ(xs.size(), 2);
+    }
+}
+
+TEST(Cylinders, NormalVectorOnCapsTest){
+    std::vector<std::pair<tuple, tuple>> data 
+    {
+        {point(0,   1, 0),   vector(0, -1, 0)},
+        {point(0.5, 1, 0),   vector(0, -1, 0)},
+        {point(0,   1, 0.5), vector(0, -1, 0)},
+        {point(0,   2, 0),   vector(0,  1, 0)},
+        {point(0.5, 2, 0),   vector(0,  1, 0)},
+        {point(0,   2, 0.5), vector(0,  1, 0)}
+    };
+
+    Cylinder cyl;
+    cyl.minimum = 1;
+    cyl.maximum = 2;
+    cyl.closed = true;
+    for (auto [p, v] : data){
+        tuple n = cyl.local_normal_at(p);
+        EXPECT_EQ(n, v);
+    }
+}
